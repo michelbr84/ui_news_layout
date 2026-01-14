@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import pygame
+import re
 
 pygame.init()
 pygame.display.set_caption("Noticias (Pygame Mock)")
@@ -41,20 +42,9 @@ C_PANEL_2 = (15, 15, 15, 210)
 # -----------------------------
 # Categories
 # -----------------------------
-CATEGORY_ALL = "Todas"
-TOP_CATEGORIES = ["Mensagens", "Competições", "Lesões e Suspensões"]
-BOTTOM_CATEGORIES = ["Contratos e Imprensa", "Transferências", "Empregos", "Registos"]
-
-ALL_CATEGORIES = [CATEGORY_ALL] + TOP_CATEGORIES + BOTTOM_CATEGORIES
-
-# Accept alias from user JSON
-CATEGORY_ALIASES = {
-    "Registros": "Registos",
-    "Registro": "Registos",
-    "Registo": "Registos",
-}
-
-DEFAULT_CATEGORY = "Mensagens"
+TOP_TABS = ["Todas", "Mensagens", "Competições", "Lesões e Suspensões"]
+BOTTOM_TABS = ["Contratos e Imprensa", "Transferências", "Empregos", "Registos"]
+ALL_CATEGORIES = TOP_TABS[1:] + BOTTOM_TABS  # sem "Todas"
 
 # -----------------------------
 # JSON
@@ -63,23 +53,19 @@ DEFAULT_JSON_PATH = "news_data.json"
 
 DEFAULT_JSON = {
     "coach_name": "Michel Duek",
-    "sidebar_date": "Sábado\n25.9.04 TAR",
+    "sidebar_date": "Quinta-Feira\n1.1.26 TAR",
     "news": [
         {
-            "date": "Qui 23 Set NTE",
-            "category": "Competições",
-            "title": "Observação do Botafogo terminada",
-            "description": (
-                "Artur Neto normalmente faz jogar o Botafogo num estilo 4-4-2 ofensivo e de qualidade.\n\n"
-                "A má classificação do Botafogo não deixa perceber a verdadeira qualidade da equipa.\n\n"
-                "Temos sorte em Vádson, que é o melhor defesa deles, estar lesionado neste momento."
-            )
+            "date": "Qua 31 Dez NTE",
+            "category": "Mensagens",
+            "title": "Feliz Ano Novo",
+            "description": "A equipe do jogo PyManager te deseja um excelente ano novo, que você tenha muitas vitórias."
         },
         {
-            "date": "Qui 23 Set TAR",
+            "date": "Qua 31 Dez TAR",
             "category": "Mensagens",
-            "title": "Coritiba contrata Maria",
-            "description": "O Coritiba anunciou a contratação de Maria. Detalhes adicionais serão divulgados em breve."
+            "title": "Comece o ano novo com o pé direito!",
+            "description": "Texto completo da notícia aqui."
         }
     ]
 }
@@ -89,16 +75,80 @@ def ensure_default_json(path: str) -> None:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(DEFAULT_JSON, f, ensure_ascii=False, indent=2)
 
-def _normalize_category(cat: str) -> str:
-    if not cat:
-        return DEFAULT_CATEGORY
-    cat = str(cat).strip()
-    if cat in CATEGORY_ALIASES:
-        cat = CATEGORY_ALIASES[cat]
-    # Allow only known categories; otherwise default
-    if cat not in TOP_CATEGORIES and cat not in BOTTOM_CATEGORIES:
-        return DEFAULT_CATEGORY
-    return cat
+def _norm_spaces(s: str) -> str:
+    return re.sub(r"\s+", " ", s.strip())
+
+def parse_date_key(date_str: str):
+    """
+    Tenta converter strings do tipo:
+      - "Qui 13 Jan NTE"
+      - "Qua 31 Dez TAR"
+      - "25.9.04 TAR"
+    em uma chave ordenável.
+    Se falhar, retorna None.
+    """
+    s = _norm_spaces(str(date_str))
+
+    # prioridade por período (maior = mais recente dentro do dia)
+    period_rank = {
+        "MAD": 0, "MAN": 0, "MNH": 0, "AM": 0,
+        "TAR": 1, "PM": 1,
+        "NTE": 2, "NOI": 2, "NIGHT": 2
+    }
+
+    months = {
+        # PT
+        "JAN": 1, "FEV": 2, "MAR": 3, "ABR": 4, "MAI": 5, "JUN": 6,
+        "JUL": 7, "AGO": 8, "SET": 9, "OUT": 10, "NOV": 11, "DEZ": 12,
+        # EN
+        "FEB": 2, "APR": 4, "MAY": 5, "AUG": 8, "SEP": 9, "OCT": 10, "DEC": 12
+    }
+
+    # formato numérico: d.m.yy + período
+    m = re.search(r"(\d{1,2})\.(\d{1,2})\.(\d{2,4})\s*([A-Za-z]{2,5})?", s, re.IGNORECASE)
+    if m:
+        day = int(m.group(1))
+        month = int(m.group(2))
+        year_raw = m.group(3)
+        year = int(year_raw)
+        if year < 100:
+            # heurística: 00-79 => 2000, 80-99 => 1900
+            year = 2000 + year if year <= 79 else 1900 + year
+        per = (m.group(4) or "").upper()
+        pr = period_rank.get(per, -1)
+        return (year, month, day, pr)
+
+    # formato textual: (dia_semana) dia mês período
+    tokens = s.split(" ")
+    if len(tokens) >= 3:
+        # exemplos:
+        # "Qua 31 Dez TAR" => tokens[1]=31 tokens[2]=Dez tokens[3]=TAR
+        # "13 Jan TAR" (sem dia da semana) => tokens[0]=13 tokens[1]=Jan tokens[2]=TAR
+        def try_parse_at(idx_day, idx_month, idx_period):
+            try:
+                day = int(re.sub(r"\D", "", tokens[idx_day]))
+                mon = tokens[idx_month].upper()[:3]
+                month = months.get(mon)
+                if not month:
+                    return None
+                per = tokens[idx_period].upper() if idx_period < len(tokens) else ""
+                pr = period_rank.get(per, -1)
+                # sem ano -> assume 2026 (p/ mock). Você pode trocar isso.
+                year = 2026
+                return (year, month, day, pr)
+            except Exception:
+                return None
+
+        # com dia da semana
+        key = try_parse_at(1, 2, 3) if len(tokens) >= 4 else None
+        if key:
+            return key
+        # sem dia da semana
+        key = try_parse_at(0, 1, 2) if len(tokens) >= 3 else None
+        if key:
+            return key
+
+    return None
 
 def load_data(path: str) -> dict:
     ensure_default_json(path)
@@ -109,7 +159,7 @@ def load_data(path: str) -> dict:
         data["coach_name"] = "Michel Duek"
 
     if "sidebar_date" not in data or not isinstance(data["sidebar_date"], str) or not data["sidebar_date"].strip():
-        data["sidebar_date"] = "Sábado\n25.9.04 TAR"
+        data["sidebar_date"] = "Quinta-Feira\n1.1.26 TAR"
 
     if "news" not in data or not isinstance(data["news"], list):
         data["news"] = []
@@ -122,109 +172,27 @@ def load_data(path: str) -> dict:
         date = str(item.get("date", "")).strip() or "—"
         title = str(item.get("title", "")).strip()
         desc = str(item.get("description", "")).strip() or "—"
-        cat = _normalize_category(item.get("category", DEFAULT_CATEGORY))
+        cat = str(item.get("category", "")).strip()
 
         if not title:
             continue
 
+        if cat not in ALL_CATEGORIES:
+            # fallback: se não veio category, assume Mensagens
+            cat = "Mensagens"
+
+        sort_key = parse_date_key(date)
+
         normalized.append({
             "date": date,
-            "category": cat,
             "title": title,
-            "description": desc
+            "description": desc,
+            "category": cat,
+            "_sort_key": sort_key
         })
 
     data["news"] = normalized
     return data
-
-# -----------------------------
-# Date parsing for sorting
-# Expected examples:
-# "Qui 13 Jan NTE"
-# "Qua 22 Set TAR"
-# Also supports "14.1.26 TAR" (basic)
-# -----------------------------
-MONTHS = {
-    "JAN": 1, "FEV": 2, "FEB": 2, "MAR": 3, "ABR": 4, "APR": 4, "MAI": 5, "MAY": 5,
-    "JUN": 6, "JUL": 7, "AGO": 8, "AUG": 8, "SET": 9, "SEP": 9, "OUT": 10, "OCT": 10,
-    "NOV": 11, "DEZ": 12, "DEC": 12
-}
-TIME_PART = {"MAN": 1, "TAR": 2, "NTE": 3, "NOI": 3, "NIGHT": 3}
-
-def date_sort_key(date_str: str):
-    """
-    Returns a tuple comparable for sorting (year, month, day, timepart).
-    If year missing, uses 0.
-    If parsing fails, returns very small key.
-    """
-    if not date_str or date_str == "—":
-        return (0, 0, 0, 0)
-
-    s = str(date_str).strip()
-
-    # Format like "14.1.26 TAR"
-    # day.month.year2
-    try:
-        parts = s.split()
-        if parts and "." in parts[0]:
-            dmy = parts[0].split(".")
-            if len(dmy) >= 3:
-                d = int(dmy[0])
-                m = int(dmy[1])
-                y2 = int(dmy[2])
-                y = 2000 + y2 if y2 < 100 else y2
-                tp = TIME_PART.get(parts[1].upper(), 0) if len(parts) > 1 else 0
-                return (y, m, d, tp)
-    except Exception:
-        pass
-
-    # Format like "Qui 13 Jan NTE" or "Qua 22 Set TAR"
-    tokens = s.replace("-", " ").split()
-    # Find a day number token
-    day = None
-    month = None
-    year = 0
-    tp = 0
-
-    for i, tok in enumerate(tokens):
-        t = tok.strip()
-        if t.isdigit():
-            day = int(t)
-            # month token expected next
-            if i + 1 < len(tokens):
-                mt = tokens[i + 1].upper()
-                month = MONTHS.get(mt, None)
-            # year optional next-next (rare)
-            if i + 2 < len(tokens):
-                yt = tokens[i + 2]
-                if yt.isdigit():
-                    yv = int(yt)
-                    year = 2000 + yv if yv < 100 else yv
-            break
-
-    # time part is usually last token
-    if tokens:
-        tp = TIME_PART.get(tokens[-1].upper(), 0)
-
-    if day is None or month is None:
-        return (0, 0, 0, 0)
-
-    return (year, month, day, tp)
-
-def sort_news_by_date_desc(items):
-    # newest first (descending)
-    # if some items share same key, keep stable by original order
-    indexed = list(enumerate(items))
-    indexed.sort(key=lambda it: (date_sort_key(it[1].get("date", "—")), it[0]), reverse=True)
-    return [it[1] for it in indexed]
-
-def filter_news(master_news, current_filter: str):
-    if current_filter == CATEGORY_ALL:
-        return sort_news_by_date_desc(master_news)
-
-    # Filter by selected category and then sort by date desc
-    filtered = [n for n in master_news if n.get("category") == current_filter]
-    return sort_news_by_date_desc(filtered)
 
 # -----------------------------
 # Responsive scaling
@@ -283,7 +251,7 @@ def draw_text(surface, text, font, color, rect, align="center"):
     surface.blit(img, r)
     return r
 
-def draw_text_wrapped(surface, text, font, color, x, y, max_width, line_height):
+def draw_text_wrapped(surface, text, font, color, x, y, max_width, line_height, clip_bottom=None):
     words = text.split()
     line = ""
     cur_y = y
@@ -292,10 +260,15 @@ def draw_text_wrapped(surface, text, font, color, x, y, max_width, line_height):
         if font.size(test)[0] <= max_width:
             line = test
         else:
-            surface.blit(font.render(line, True, color), (x, cur_y))
-            cur_y += line_height
+            if line:
+                if clip_bottom is not None and cur_y + line_height > clip_bottom:
+                    return cur_y
+                surface.blit(font.render(line, True, color), (x, cur_y))
+                cur_y += line_height
             line = w
     if line:
+        if clip_bottom is not None and cur_y + line_height > clip_bottom:
+            return cur_y
         surface.blit(font.render(line, True, color), (x, cur_y))
         cur_y += line_height
     return cur_y
@@ -309,6 +282,20 @@ def button(surface, rect, label, *, active=False, hovered=False, small=False):
     color = C_YELLOW if active else C_WHITE
     draw_text(surface, label, font, color, rect, align="center")
 
+def fit_font_for_multiline(lines, max_w, max_h, start_px, bold=False, min_px=10):
+    px = start_px
+    while px >= min_px:
+        f = get_font(px, bold=bold)
+        line_h = f.get_linesize()
+        total_h = line_h * len(lines)
+        widest = 0
+        for ln in lines:
+            widest = max(widest, f.size(ln)[0])
+        if widest <= max_w and total_h <= max_h:
+            return f
+        px -= 1
+    return get_font(min_px, bold=bold)
+
 def draw_sidebar_button(surface, rect, label, *, hovered=False, selected=False):
     base = C_BLUE if (hovered or selected) else C_BLUE_DARK
     pygame.draw.rect(surface, base, rect)
@@ -316,14 +303,22 @@ def draw_sidebar_button(surface, rect, label, *, hovered=False, selected=False):
     color = C_YELLOW if selected else C_WHITE
 
     lines = str(label).split("\n")
-    lh = Sy(16)
-    total_h = len(lines) * lh
+    pad_x = Sx(10)
+    pad_y = Sy(6)
+    max_w = rect.width - pad_x * 2
+    max_h = rect.height - pad_y * 2
+
+    # fonte dinâmica para não "vazar" do botão na sidebar
+    f = fit_font_for_multiline(lines, max_w, max_h, start_px=Sf(16), bold=False, min_px=Sf(10))
+    line_h = f.get_linesize()
+    total_h = line_h * len(lines)
     y = rect.centery - total_h // 2
+
     for ln in lines:
-        img = FONT_14.render(ln, True, color)
-        r = img.get_rect(center=(rect.centerx, y + lh // 2))
+        img = f.render(ln, True, color)
+        r = img.get_rect(center=(rect.centerx, y + line_h // 2))
         surface.blit(img, r)
-        y += lh
+        y += line_h
 
 def draw_arrow(surface, rect, direction):
     pygame.draw.rect(surface, C_BLACK, rect, border_radius=max(2, Sx(3)))
@@ -349,38 +344,51 @@ def load_bg():
     return None
 
 # -----------------------------
+# Filtering + sorting
+# -----------------------------
+def build_view(news_all, active_category, filter_text):
+    ft = (filter_text or "").strip().lower()
+
+    if active_category == "Todas":
+        items = list(news_all)
+    else:
+        items = [n for n in news_all if n.get("category") == active_category]
+
+    if ft:
+        items = [n for n in items if ft in n.get("title", "").lower()]
+
+    # ordenação por data: usa _sort_key quando existe; senão mantém ordem original
+    # mais recente primeiro
+    def sort_tuple(n):
+        k = n.get("_sort_key")
+        # se não parseou, joga pro "fundo"
+        return k if k is not None else (0, 0, 0, -1)
+
+    # Para evitar que itens sem _sort_key dominem, fazemos stable sort:
+    # 1) separa parseáveis e não parseáveis
+    parse_ok = [n for n in items if n.get("_sort_key") is not None]
+    parse_no = [n for n in items if n.get("_sort_key") is None]
+    parse_ok.sort(key=sort_tuple, reverse=True)
+    return parse_ok + parse_no
+
+# -----------------------------
 # Main app
 # -----------------------------
 def run(json_path: str):
     clock = pygame.time.Clock()
     BG = load_bg()
 
-    # Tabs (labels must match categories)
-    top_tabs = [CATEGORY_ALL] + TOP_CATEGORIES
-    bottom_tabs = BOTTOM_CATEGORIES[:]  # already correct labels
-
-    # Current filter (one unified filter)
-    current_filter = CATEGORY_ALL
-
-    # Load data
     data = load_data(json_path)
     coach_name = data["coach_name"]
     sidebar_date = data["sidebar_date"]
-    master_news = data["news"] or [{
-        "date": "—",
-        "category": DEFAULT_CATEGORY,
-        "title": "Sem notícias",
-        "description": "O JSON não contém notícias."
+    news_all = data["news"] or [{
+        "date": "—", "category": "Mensagens", "title": "Sem notícias", "description": "O JSON não contém notícias.", "_sort_key": None
     }]
 
-    news = filter_news(master_news, current_filter)
-    if not news:
-        news = [{
-            "date": "—",
-            "category": DEFAULT_CATEGORY,
-            "title": "Sem notícias",
-            "description": "Nenhuma notícia nesta categoria."
-        }]
+    # UI State
+    active_category = "Todas"
+    filter_text = ""          # editable
+    filter_active = False     # cursor state
 
     selected_news = 0
     news_scroll = 0
@@ -430,108 +438,128 @@ def run(json_path: str):
     TAB_H = max(Sy(36), Sy(44))
     tab_x = MAIN_X + Sx(10)
     tab_y = Sy(80)
-    gap = Sx(6)
+    gap = Sx(10)  # um pouco mais “solto” como no jogo
     tab_total_w = MAIN_W - Sx(20)
-    tab_w = (tab_total_w - gap * (len(top_tabs) - 1)) // len(top_tabs)
+    tab_w = (tab_total_w - gap * (len(TOP_TABS) - 1)) // len(TOP_TABS)
     top_tab_rects = []
-    for i in range(len(top_tabs)):
+    for i in range(len(TOP_TABS)):
         top_tab_rects.append(pygame.Rect(tab_x + i * (tab_w + gap), tab_y, tab_w, TAB_H))
 
     # News list area
     LIST_X = MAIN_X + Sx(10)
     LIST_Y = tab_y + TAB_H + Sy(10)
-    LIST_W = max(Sx(320), int(MAIN_W * 0.22))
-    LIST_H = max(Sy(130), Sy(160))
+    LIST_W = max(Sx(360), int(MAIN_W * 0.30))  # mais parecido com o jogo (lista mais larga)
+    LIST_H = max(Sy(150), Sy(170))
 
-    list_header = pygame.Rect(LIST_X, LIST_Y, LIST_W, Sy(26))
-    list_panel = pygame.Rect(LIST_X, LIST_Y + Sy(26), LIST_W, LIST_H - Sy(26))
+    LIST_HEADER_H = Sy(30)
+    list_header = pygame.Rect(LIST_X, LIST_Y, LIST_W, LIST_HEADER_H)
+    list_panel = pygame.Rect(LIST_X, LIST_Y + LIST_HEADER_H, LIST_W, LIST_H - LIST_HEADER_H)
     scrollbar_rect = pygame.Rect(LIST_X + LIST_W - Sx(14), list_panel.top, Sx(14), list_panel.height)
 
-    read_next_rect = pygame.Rect(LIST_X + LIST_W + Sx(12), LIST_Y + Sy(46), Sx(140), Sy(30))
+    # ---- Filtro (canto superior direito) + Botão (abaixo do filtro) ----
+    # exatamente como sua 2ª imagem: filtro em cima, "Ler Próxima" embaixo.
+    FILTER_H = Sy(24)
+    filter_label_w = Sx(70)
+    filter_input_w = max(Sx(240), int(MAIN_W * 0.22))
+    filter_x_right = MAIN_X + MAIN_W - Sx(20)
 
-    filter_label_rect = pygame.Rect(LIST_X + LIST_W - Sx(150), LIST_Y + LIST_H + Sy(8), Sx(60), Sy(22))
-    filter_input_rect = pygame.Rect(LIST_X + LIST_W - Sx(90), LIST_Y + LIST_H + Sy(8), Sx(110), Sy(22))
+    filter_input_rect = pygame.Rect(
+        filter_x_right - filter_input_w,
+        LIST_Y - Sy(6),
+        filter_input_w,
+        FILTER_H
+    )
+    filter_label_rect = pygame.Rect(
+        filter_input_rect.left - Sx(10) - filter_label_w,
+        filter_input_rect.top,
+        filter_label_w,
+        FILTER_H
+    )
+
+    # Botão "Ler Próxima" abaixo do filtro, no mesmo alinhamento horizontal.
+    read_next_rect = pygame.Rect(
+        filter_label_rect.left,
+        filter_input_rect.bottom + Sy(18),
+        filter_label_w + Sx(10) + filter_input_w,
+        Sy(30)
+    )
 
     # Bottom tabs
     BOTTOM_TABS_H = max(Sy(34), Sy(42))
-    BOTTOM_TABS_Y = HEIGHT - Sy(95)
+    NAV_Y = HEIGHT - Sy(55)
+    NAV_H = Sy(40)
+
+    # deixa um espaço entre bottom tabs e nav, como no jogo
+    BOTTOM_TABS_Y = NAV_Y - Sy(10) - BOTTOM_TABS_H
 
     bt_x = MAIN_X + Sx(10)
     bt_y = BOTTOM_TABS_Y
     bt_total_w = MAIN_W - Sx(20)
-    bt_w = (bt_total_w - gap * (len(bottom_tabs) - 1)) // len(bottom_tabs)
+    bt_w = (bt_total_w - gap * (len(BOTTOM_TABS) - 1)) // len(BOTTOM_TABS)
     bottom_tab_rects = []
-    for i in range(len(bottom_tabs)):
+    for i in range(len(BOTTOM_TABS)):
         bottom_tab_rects.append(pygame.Rect(bt_x + i * (bt_w + gap), bt_y, bt_w, BOTTOM_TABS_H))
 
-    # Content area
+    # Content area: começa depois da lista/filtro e termina antes das bottom tabs
     CONTENT_X = MAIN_X + Sx(10)
-    CONTENT_Y = LIST_Y + LIST_H + Sy(18)
+    CONTENT_Y = list_panel.bottom + Sy(12)
     CONTENT_W = MAIN_W - Sx(20)
-    CONTENT_H = HEIGHT - CONTENT_Y - Sy(120)  # reserva para tabs bottom + navegação
-    content_rect = pygame.Rect(CONTENT_X, CONTENT_Y, CONTENT_W, max(Sy(240), CONTENT_H))
 
-    # Bottom nav buttons
-    NAV_Y = HEIGHT - Sy(55)
-    NAV_H = Sy(40)
-    btn_prev_rect = pygame.Rect(MAIN_X + Sx(10), NAV_Y, (MAIN_W - Sx(20)) // 2 - Sx(3), NAV_H)
-    btn_next_rect = pygame.Rect(btn_prev_rect.right + Sx(6), NAV_Y, (MAIN_W - Sx(20)) // 2 - Sx(3), NAV_H)
+    # bottom tabs “encostam” no topo da área inferior; o conteúdo vai até um pouco acima
+    CONTENT_BOTTOM_LIMIT = BOTTOM_TABS_Y - Sy(10)
+    CONTENT_H = max(Sy(240), CONTENT_BOTTOM_LIMIT - CONTENT_Y)
+    content_rect = pygame.Rect(CONTENT_X, CONTENT_Y, CONTENT_W, CONTENT_H)
+
+    # Nav buttons
+    btn_prev_rect = pygame.Rect(MAIN_X + Sx(10), NAV_Y, (MAIN_W - Sx(20)) // 2 - Sx(6), NAV_H)
+    btn_next_rect = pygame.Rect(btn_prev_rect.right + Sx(12), NAV_Y, (MAIN_W - Sx(20)) // 2 - Sx(6), NAV_H)
 
     # ------------- helpers -------------
-    def clamp_scroll():
+    def current_view():
+        return build_view(news_all, active_category, filter_text)
+
+    def clamp_scroll(view):
         nonlocal news_scroll
-        max_scroll = max(0, len(news) - visible_rows)
+        max_scroll = max(0, len(view) - visible_rows)
         news_scroll = max(0, min(news_scroll, max_scroll))
 
-    def ensure_selected_visible():
+    def ensure_selected_visible(view):
         nonlocal news_scroll
+        if not view:
+            return
         if selected_news < news_scroll:
             news_scroll = selected_news
         elif selected_news >= news_scroll + visible_rows:
             news_scroll = selected_news - visible_rows + 1
-        clamp_scroll()
+        clamp_scroll(view)
 
-    def rebuild_filtered_news(reset_selection=True):
-        nonlocal news, selected_news, news_scroll
-        news = filter_news(master_news, current_filter)
-        if not news:
-            news = [{
-                "date": "—",
-                "category": DEFAULT_CATEGORY,
-                "title": "Sem notícias",
-                "description": "Nenhuma notícia nesta categoria."
-            }]
-        if reset_selection:
-            selected_news = 0
-            news_scroll = 0
-        else:
-            selected_news = max(0, min(selected_news, len(news) - 1))
-            clamp_scroll()
+    def reset_selection(view):
+        nonlocal selected_news, news_scroll
+        selected_news = 0
+        news_scroll = 0
+        clamp_scroll(view)
 
     def reload_json():
-        nonlocal coach_name, sidebar_date, master_news, selected_news, news_scroll
+        nonlocal coach_name, sidebar_date, news_all
         try:
             d = load_data(json_path)
             coach_name = d["coach_name"]
             sidebar_date = d["sidebar_date"]
-            master_news = d["news"] or [{
-                "date": "—",
-                "category": DEFAULT_CATEGORY,
-                "title": "Sem notícias",
-                "description": "O JSON não contém notícias."
+            news_all = d["news"] or [{
+                "date": "—", "category": "Mensagens", "title": "Sem notícias", "description": "O JSON não contém notícias.", "_sort_key": None
             }]
-            # Keep filter, rebuild list
-            rebuild_filtered_news(reset_selection=True)
-            selected_news = max(0, min(selected_news, len(news) - 1))
-            news_scroll = max(0, min(news_scroll, max(0, len(news) - visible_rows)))
         except Exception as e:
             print("Erro ao recarregar JSON:", e)
 
     def on_wheel(mouse_pos, y_delta):
         nonlocal news_scroll
+        view = current_view()
         if in_rect(mouse_pos, list_panel):
             news_scroll -= y_delta
-            clamp_scroll()
+            clamp_scroll(view)
+
+    def category_is_active(label):
+        return active_category == label
 
     def update_hover(mouse_pos):
         nonlocal hover_top, hover_bottom, hover_sb, hover_news, hover_read_next
@@ -556,12 +584,13 @@ def run(json_path: str):
                 hover_sb = i
                 break
 
-        if in_rect(mouse_pos, list_panel):
+        view = current_view()
+        if in_rect(mouse_pos, list_panel) and view:
             row_h = Sy(24)
             row_gap = Sy(2)
             for i in range(visible_rows):
                 idx = news_scroll + i
-                if idx >= len(news):
+                if idx >= len(view):
                     break
                 row_rect = pygame.Rect(
                     list_panel.left + Sx(6),
@@ -574,39 +603,44 @@ def run(json_path: str):
                     break
 
     def click(mouse_pos):
-        nonlocal selected_news, current_filter
+        nonlocal active_category, selected_news, filter_active
 
-        # Top tabs => set filter
+        # filtro ativa/desativa
+        if in_rect(mouse_pos, filter_input_rect):
+            filter_active = True
+        else:
+            filter_active = False
+
+        # top tabs -> category
         for i, r in enumerate(top_tab_rects):
             if in_rect(mouse_pos, r):
-                current_filter = top_tabs[i]  # includes "Todas"
-                rebuild_filtered_news(reset_selection=True)
+                active_category = TOP_TABS[i]
+                v = current_view()
+                reset_selection(v)
                 return
 
-        # Bottom tabs => set filter
+        # bottom tabs -> category
         for i, r in enumerate(bottom_tab_rects):
             if in_rect(mouse_pos, r):
-                current_filter = bottom_tabs[i]
-                rebuild_filtered_news(reset_selection=True)
+                active_category = BOTTOM_TABS[i]
+                v = current_view()
+                reset_selection(v)
                 return
 
         # news rows
         if hover_news is not None:
             selected_news = hover_news
-            ensure_selected_visible()
+            ensure_selected_visible(current_view())
             return
 
-        # next
+        # read next
         if in_rect(mouse_pos, read_next_rect):
-            selected_news = (selected_news + 1) % len(news)
-            ensure_selected_visible()
+            v = current_view()
+            if not v:
+                return
+            selected_news = (selected_news + 1) % len(v)
+            ensure_selected_visible(v)
             return
-
-    def is_top_active(label: str) -> bool:
-        return current_filter == label
-
-    def is_bottom_active(label: str) -> bool:
-        return current_filter == label
 
     def render():
         # Background
@@ -652,21 +686,64 @@ def run(json_path: str):
         beveled_panel(screen, title_rect, C_RED, (255, 80, 80), C_BLACK, radius=max(2, Sx(3)))
         draw_text(screen, f"Notícias para {coach_name}", FONT_28, C_WHITE, title_rect, align="center")
 
-        # Top tabs (active driven by current_filter)
+        # Top tabs
         for i, r in enumerate(top_tab_rects):
-            label = top_tabs[i]
+            label = TOP_TABS[i]
             button(
                 screen, r, label,
-                active=is_top_active(label),
+                active=category_is_active(label),
                 hovered=(hover_top == i)
             )
 
-        # Selected title
-        sel_title = news[selected_news]["title"]
+        # Filter (top-right)
+        draw_text(screen, "Filtro :", FONT_14, C_WHITE, filter_label_rect, align="center")
+        pygame.draw.rect(screen, (40, 40, 40), filter_input_rect)
+        pygame.draw.rect(screen, (180, 180, 180), filter_input_rect, max(1, Sx(1)))
+
+        # texto do filtro + cursor
+        ft = filter_text
+        show = ft
+        # corta do começo se ficar muito grande
+        max_px = filter_input_rect.width - Sx(14)
+        fnt = FONT_14
+        while fnt.size(show + "|")[0] > max_px and len(show) > 0:
+            show = show[1:]
+        caret = "|" if filter_active and (pygame.time.get_ticks() // 400) % 2 == 0 else ""
+        img = fnt.render(show + caret, True, C_WHITE)
+        screen.blit(img, (filter_input_rect.left + Sx(8), filter_input_rect.centery - img.get_height() // 2))
+
+        # view
+        view = current_view()
+        if not view:
+            view = [{
+                "date": "—", "category": "Mensagens", "title": "Sem notícias",
+                "description": "Sem itens nesta categoria/filtro.", "_sort_key": None
+            }]
+
+        # clamp selection
+        nonlocal_selected = False
+        nonlocal_scroll = False
+        # (em python, não podemos setar nonlocal aqui; então só garantimos com if)
+        # Ajuste simples:
+        # - se selected_news estourou, corrige
+        # - se scroll estourou, corrige
+        # (isso acontece quando filtro muda e lista fica menor)
+        nonlocal nonlocal_selected, nonlocal_scroll  # dummy to keep structure (no effect)
+
+        # safe selection/scroll
+        if selected_news >= len(view):
+            # volta pro topo
+            # (sem nonlocal; mas selected_news é do escopo do run, então isso funciona)
+            pass
+
+        # List header = selected title (do view)
+        sel_idx = min(selected_news, len(view) - 1)
+        sel_title = view[sel_idx]["title"]
+
         beveled_panel(screen, list_header, C_RED_DARK, (255, 80, 80), C_BLACK, radius=max(2, Sx(2)))
         draw_text(screen, sel_title, FONT_14, C_WHITE, list_header, align="midleft")
 
-        # List panel
+        # List panel (alpha)
         panel_surf = pygame.Surface((list_panel.width, list_panel.height), pygame.SRCALPHA)
         panel_surf.fill(C_PANEL)
         screen.blit(panel_surf, list_panel.topleft)
@@ -675,13 +752,13 @@ def run(json_path: str):
         # Rows
         row_h = Sy(24)
         row_gap = Sy(2)
-        chip_w = Sx(110)
+        chip_w = Sx(130)
 
         for i in range(visible_rows):
             idx = news_scroll + i
-            if idx >= len(news):
+            if idx >= len(view):
                 break
-            item = news[idx]
+            item = view[idx]
             date = item["date"]
             title = item["title"]
 
@@ -692,7 +769,7 @@ def run(json_path: str):
                 row_h
             )
 
-            is_sel = (idx == selected_news)
+            is_sel = (idx == sel_idx)
             is_hov = (hover_news == idx)
 
             bgc = (25, 30, 90) if not is_sel else (140, 0, 0)
@@ -707,37 +784,27 @@ def run(json_path: str):
             pygame.draw.rect(screen, (80, 120, 255), chip, max(1, Sx(1)))
             draw_text(screen, date, FONT_12, C_WHITE, chip, align="center")
 
-            title_rect2 = pygame.Rect(
-                chip.right + Sx(8),
-                row_rect.top,
-                row_rect.width - chip.width - Sx(8),
-                row_rect.height
-            )
+            title_rect2 = pygame.Rect(chip.right + Sx(8), row_rect.top, row_rect.width - chip.width - Sx(8), row_rect.height)
             draw_text(screen, title, FONT_12, C_WHITE, title_rect2, align="midleft")
 
         # Scrollbar
         pygame.draw.rect(screen, (40, 40, 40), scrollbar_rect)
         pygame.draw.rect(screen, (120, 120, 120), scrollbar_rect, max(1, Sx(1)))
 
-        thumb_h = max(Sy(24), int(scrollbar_rect.height * (visible_rows / max(visible_rows, len(news)))))
-        max_scroll = max(0, len(news) - visible_rows)
+        thumb_h = max(Sy(24), int(scrollbar_rect.height * (visible_rows / max(visible_rows, len(view)))))
+        max_scroll = max(0, len(view) - visible_rows)
         t = 0 if max_scroll == 0 else news_scroll / max_scroll
         thumb_y = scrollbar_rect.top + int((scrollbar_rect.height - thumb_h) * t)
         thumb = pygame.Rect(scrollbar_rect.left + Sx(2), thumb_y, scrollbar_rect.width - Sx(4), thumb_h)
         pygame.draw.rect(screen, (180, 180, 180), thumb)
         pygame.draw.rect(screen, C_BLACK, thumb, max(1, Sx(1)))
 
-        # Read next button
+        # Read next button (under filter, right side)
         pygame.draw.rect(screen, (200, 200, 200) if hover_read_next else (180, 180, 180), read_next_rect)
         pygame.draw.rect(screen, C_BLACK, read_next_rect, max(1, Sx(2)))
         draw_text(screen, "Ler Próxima", FONT_14, (20, 20, 20), read_next_rect, align="center")
 
-        # Filter widgets (visual only, still)
-        draw_text(screen, "Filtro :", FONT_14, C_WHITE, filter_label_rect, align="center")
-        pygame.draw.rect(screen, (40, 40, 40), filter_input_rect)
-        pygame.draw.rect(screen, (180, 180, 180), filter_input_rect, max(1, Sx(1)))
-
-        # Content area
+        # Content area overlay
         content_surf = pygame.Surface((content_rect.width, content_rect.height), pygame.SRCALPHA)
         content_surf.fill(C_PANEL_2)
         screen.blit(content_surf, content_rect.topleft)
@@ -747,25 +814,30 @@ def run(json_path: str):
         title_img = FONT_22.render(sel_title, True, C_YELLOW)
         screen.blit(title_img, (content_rect.left + Sx(16), content_rect.top + Sy(18)))
 
-        # Description
-        desc = news[selected_news]["description"]
+        # Description text (wrapped) - com margem inferior p/ não encostar nos botões
+        desc = view[sel_idx]["description"]
         body_x = content_rect.left + Sx(16)
-        body_y = content_rect.top + Sy(62)
+        body_y = content_rect.top + Sy(72)
         body_w = content_rect.width - Sx(32)
 
-        paragraphs = [p.strip() for p in desc.split("\n\n") if p.strip()]
-        text_font = get_font(Sf(20), bold=True)
-        line_h = Sy(26)
-        for p in paragraphs:
-            body_y = draw_text_wrapped(screen, p, text_font, C_WHITE, body_x, body_y, body_w, line_h)
-            body_y += Sy(12)
+        # margem inferior grande pra não “encostar” nos tabs
+        clip_bottom = content_rect.bottom - Sy(20)
 
-        # Bottom tabs (active driven by current_filter)
+        paragraphs = [p.strip() for p in desc.split("\n\n") if p.strip()]
+        text_font = get_font(Sf(22), bold=True)
+        line_h = Sy(28)
+        for p in paragraphs:
+            body_y = draw_text_wrapped(screen, p, text_font, C_WHITE, body_x, body_y, body_w, line_h, clip_bottom=clip_bottom)
+            body_y += Sy(10)
+            if body_y >= clip_bottom:
+                break
+
+        # Bottom tabs
         for i, r in enumerate(bottom_tab_rects):
-            label = bottom_tabs[i]
+            label = BOTTOM_TABS[i]
             button(
                 screen, r, label,
-                active=is_bottom_active(label),
+                active=category_is_active(label),
                 hovered=(hover_bottom == i),
                 small=True
             )
@@ -793,8 +865,26 @@ def run(json_path: str):
                     running = False
                 elif event.key == pygame.K_r:
                     reload_json()
+                    # ao recarregar, reseta seleção p/ evitar index inválido
+                    selected_news = 0
+                    news_scroll = 0
                 elif event.key == pygame.K_F5:
                     BG = load_bg()
+                else:
+                    # digitação do filtro
+                    if filter_active:
+                        if event.key == pygame.K_BACKSPACE:
+                            filter_text = filter_text[:-1]
+                            selected_news = 0
+                            news_scroll = 0
+                        elif event.key == pygame.K_RETURN:
+                            filter_active = False
+                        else:
+                            ch = event.unicode
+                            if ch and ch.isprintable():
+                                filter_text += ch
+                                selected_news = 0
+                                news_scroll = 0
 
             elif event.type == pygame.MOUSEMOTION:
                 update_hover(event.pos)
@@ -809,6 +899,22 @@ def run(json_path: str):
 
             elif event.type == pygame.MOUSEWHEEL:
                 on_wheel(pygame.mouse.get_pos(), event.y)
+
+        # segurança: ajusta selection/scroll baseado no view atual
+        v = build_view(news_all, active_category, filter_text)
+        if not v:
+            v = [{
+                "date": "—", "category": "Mensagens", "title": "Sem notícias",
+                "description": "Sem itens nesta categoria/filtro.", "_sort_key": None
+            }]
+
+        if selected_news >= len(v):
+            selected_news = 0
+            news_scroll = 0
+
+        max_scroll = max(0, len(v) - visible_rows)
+        if news_scroll > max_scroll:
+            news_scroll = max_scroll
 
         render()
         pygame.display.flip()
