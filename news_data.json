@@ -1,18 +1,1 @@
-{
-  "coach_name": "Michel Duek",
-  "sidebar_date": "Quinta-Feira\n1.1.26 TAR",
-  "news": [
-    {
-      "date": "Qua 31 Dez NTE",
-      "category": "Mensagens",
-      "title": "Feliz Ano Novo",
-      "description": "A equipe do jogo PyManager te deseja um exelente ano novo, que você tenha muitas vitórias."
-    },
-    {
-      "date": "Qua 31 Dez TAR",
-      "category": "Mensagens",
-      "title": "Comece o ano novo com o pé direito!",
-      "description": "Logo mais é virada de ano e você ainda não tem um time!"
-    }
-  ]
-}
+{"coach_name":"Michel Duek","sidebar_date":"Quinta-Feira\n1.1.26 TAR","news":[{"date":"Qua 31 Dez NTE","category":"Mensagens","title":"Feliz Ano Novo","description":"A equipe do jogo PyManager te deseja um exelente ano novo, que você tenha muitas vitórias."},{"date":"Qua 31 Dez TAR","category":"Mensagens","title":"Comece o ano novo com o pé direito!","description":"Logo mais é virada de ano e você ainda não tem um time!"},{"date":"Qui 1 Jan TAR","category":"Emprego","title":"Times buscam novos treinadores","description":"Vários times de futebol estão procurando novos treinadores para começar o ano."}]}
