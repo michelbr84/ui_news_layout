@@ -1,16 +1,18 @@
 {
   "coach_name": "Michel Duek",
-  "sidebar_date": "Quarta-Feira\n14.1.26 TAR",
+  "sidebar_date": "Quinta-Feira\n1.1.26 TAR",
   "news": [
     {
-      "date": "Qui 13 Jan NTE",
-      "title": "Observação do Botafogo terminada",
-      "description": "Artur Neto normalmente faz jogar o Botafogo num estilo 4-4-2 ofensivo e de qualidade.\n\nA má classificação do Botafogo não deixa perceber a verdadeira qualidade da equipa.\n\nTemos sorte em Vádson, que é o melhor defesa deles, estar lesionado neste momento."
+      "date": "Qua 31 Dez NTE",
+      "category": "Mensagens",
+      "title": "Feliz Ano Novo",
+      "description": "A equipe do jogo PyManager te deseja um exelente ano novo, que você tenha muitas vitórias."
     },
     {
-      "date": "Qui 13 Jan TAR",
-      "title": "Coritiba contrata Maria",
-      "description": "Texto completo da notícia aqui."
+      "date": "Qua 31 Dez TAR",
+      "category": "Mensagens",
+      "title": "Comece o ano novo com o pé direito!",
+      "description": "Logo mais é virada de ano e você ainda não tem um time!"
     }
   ]
 }
