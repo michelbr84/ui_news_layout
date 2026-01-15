@@ -1,0 +1,649 @@
+{
+  "competition": {
+    "name": "Campeonato Nacional 2026",
+    "season": 2026,
+    "rounds": 38,
+    "start_date": "2026-03-29",
+    "end_date": "2026-12-07",
+    "timezone": "America/Sao_Paulo",
+    "user_team": "Michel FC",
+    "format": "double_round_robin",
+    "points_system": { "win": 3, "draw": 1, "loss": 0 }
+  },
+  "teams": [
+    { "id": "T01", "name": "Michel FC", "short": "MIC", "colors": ["#0B1F5E", "#FFD22D"] },
+    { "id": "T02", "name": "Avenida Aurora", "short": "AUR", "colors": ["#1A1A1A", "#00E5FF"] },
+    { "id": "T03", "name": "Atlético Mar Azul", "short": "AMZ", "colors": ["#0057B8", "#FFFFFF"] },
+    { "id": "T04", "name": "Bairro do Vapor", "short": "VAP", "colors": ["#6B6B6B", "#FF6A00"] },
+    { "id": "T05", "name": "Barões do Cerrado", "short": "BDC", "colors": ["#1F6F3A", "#F2C94C"] },
+    { "id": "T06", "name": "Bravos de Jatobá", "short": "JAT", "colors": ["#1B3A57", "#E63946"] },
+    { "id": "T07", "name": "Cais do Norte FC", "short": "CDN", "colors": ["#0E2A47", "#B0BEC5"] },
+    { "id": "T08", "name": "Carcará da Serra", "short": "CAR", "colors": ["#3D2C8D", "#E0E0E0"] },
+    { "id": "T09", "name": "Cavaleiros do Asfalto", "short": "CDA", "colors": ["#111111", "#D90429"] },
+    { "id": "T10", "name": "Clube do Farol", "short": "FAR", "colors": ["#0A2342", "#F6BD60"] },
+    { "id": "T11", "name": "Dragões do Ipiranga", "short": "DIP", "colors": ["#8B0000", "#FFD22D"] },
+    { "id": "T12", "name": "Esmeralda United", "short": "ESM", "colors": ["#0B8457", "#E8F1F2"] },
+    { "id": "T13", "name": "Estrela do Litoral", "short": "EDL", "colors": ["#1D4ED8", "#F8FAFC"] },
+    { "id": "T14", "name": "Ferroviários 47", "short": "FER", "colors": ["#7F1D1D", "#D1D5DB"] },
+    { "id": "T15", "name": "Flamígero SC", "short": "FLA", "colors": ["#B91C1C", "#111827"] },
+    { "id": "T16", "name": "Gaviões do Porto", "short": "GVP", "colors": ["#0F172A", "#F97316"] },
+    { "id": "T17", "name": "Guardiões da Lagoa", "short": "GDL", "colors": ["#065F46", "#A7F3D0"] },
+    { "id": "T18", "name": "Imperial do Horizonte", "short": "IDH", "colors": ["#1F2937", "#FBBF24"] },
+    { "id": "T19", "name": "Jardim das Palmeiras", "short": "JDP", "colors": ["#14532D", "#EAB308"] },
+    { "id": "T20", "name": "Lobos do Vale", "short": "LDV", "colors": ["#0B1320", "#94A3B8"] }
+  ],
+  "schedule": [
+    {
+      "round": 1,
+      "date": "2026-03-29",
+      "matches": [
+        { "home": "Michel FC", "away": "Avenida Aurora" },
+        { "home": "Atlético Mar Azul", "away": "Bairro do Vapor" },
+        { "home": "Barões do Cerrado", "away": "Bravos de Jatobá" },
+        { "home": "Cais do Norte FC", "away": "Carcará da Serra" },
+        { "home": "Cavaleiros do Asfalto", "away": "Clube do Farol" },
+        { "home": "Dragões do Ipiranga", "away": "Esmeralda United" },
+        { "home": "Estrela do Litoral", "away": "Ferroviários 47" },
+        { "home": "Flamígero SC", "away": "Gaviões do Porto" },
+        { "home": "Guardiões da Lagoa", "away": "Imperial do Horizonte" },
+        { "home": "Jardim das Palmeiras", "away": "Lobos do Vale" }
+      ]
+    },
+    {
+      "round": 2,
+      "date": "2026-04-05",
+      "matches": [
+        { "home": "Avenida Aurora", "away": "Atlético Mar Azul" },
+        { "home": "Bairro do Vapor", "away": "Barões do Cerrado" },
+        { "home": "Bravos de Jatobá", "away": "Cais do Norte FC" },
+        { "home": "Carcará da Serra", "away": "Cavaleiros do Asfalto" },
+        { "home": "Clube do Farol", "away": "Dragões do Ipiranga" },
+        { "home": "Esmeralda United", "away": "Estrela do Litoral" },
+        { "home": "Ferroviários 47", "away": "Flamígero SC" },
+        { "home": "Gaviões do Porto", "away": "Guardiões da Lagoa" },
+        { "home": "Imperial do Horizonte", "away": "Jardim das Palmeiras" },
+        { "home": "Lobos do Vale", "away": "Michel FC" }
+      ]
+    },
+    {
+      "round": 3,
+      "date": "2026-04-12",
+      "matches": [
+        { "home": "Michel FC", "away": "Atlético Mar Azul" },
+        { "home": "Avenida Aurora", "away": "Barões do Cerrado" },
+        { "home": "Bairro do Vapor", "away": "Cais do Norte FC" },
+        { "home": "Bravos de Jatobá", "away": "Cavaleiros do Asfalto" },
+        { "home": "Carcará da Serra", "away": "Dragões do Ipiranga" },
+        { "home": "Clube do Farol", "away": "Estrela do Litoral" },
+        { "home": "Esmeralda United", "away": "Flamígero SC" },
+        { "home": "Ferroviários 47", "away": "Guardiões da Lagoa" },
+        { "home": "Gaviões do Porto", "away": "Jardim das Palmeiras" },
+        { "home": "Imperial do Horizonte", "away": "Lobos do Vale" }
+      ]
+    },
+    {
+      "round": 4,
+      "date": "2026-04-19",
+      "matches": [
+        { "home": "Bairro do Vapor", "away": "Michel FC" },
+        { "home": "Atlético Mar Azul", "away": "Barões do Cerrado" },
+        { "home": "Avenida Aurora", "away": "Cais do Norte FC" },
+        { "home": "Bravos de Jatobá", "away": "Dragões do Ipiranga" },
+        { "home": "Cavaleiros do Asfalto", "away": "Estrela do Litoral" },
+        { "home": "Carcará da Serra", "away": "Flamígero SC" },
+        { "home": "Clube do Farol", "away": "Guardiões da Lagoa" },
+        { "home": "Esmeralda United", "away": "Jardim das Palmeiras" },
+        { "home": "Ferroviários 47", "away": "Lobos do Vale" },
+        { "home": "Gaviões do Porto", "away": "Imperial do Horizonte" }
+      ]
+    },
+    {
+      "round": 5,
+      "date": "2026-04-26",
+      "matches": [
+        { "home": "Michel FC", "away": "Barões do Cerrado" },
+        { "home": "Avenida Aurora", "away": "Bravos de Jatobá" },
+        { "home": "Atlético Mar Azul", "away": "Carcará da Serra" },
+        { "home": "Bairro do Vapor", "away": "Clube do Farol" },
+        { "home": "Cais do Norte FC", "away": "Esmeralda United" },
+        { "home": "Cavaleiros do Asfalto", "away": "Ferroviários 47" },
+        { "home": "Dragões do Ipiranga", "away": "Gaviões do Porto" },
+        { "home": "Estrela do Litoral", "away": "Imperial do Horizonte" },
+        { "home": "Flamígero SC", "away": "Lobos do Vale" },
+        { "home": "Guardiões da Lagoa", "away": "Jardim das Palmeiras" }
+      ]
+    },
+    {
+      "round": 6,
+      "date": "2026-05-03",
+      "matches": [
+        { "home": "Bravos de Jatobá", "away": "Michel FC" },
+        { "home": "Barões do Cerrado", "away": "Carcará da Serra" },
+        { "home": "Avenida Aurora", "away": "Cavaleiros do Asfalto" },
+        { "home": "Atlético Mar Azul", "away": "Clube do Farol" },
+        { "home": "Bairro do Vapor", "away": "Esmeralda United" },
+        { "home": "Cais do Norte FC", "away": "Ferroviários 47" },
+        { "home": "Dragões do Ipiranga", "away": "Imperial do Horizonte" },
+        { "home": "Estrela do Litoral", "away": "Jardim das Palmeiras" },
+        { "home": "Flamígero SC", "away": "Guardiões da Lagoa" },
+        { "home": "Gaviões do Porto", "away": "Lobos do Vale" }
+      ]
+    },
+    {
+      "round": 7,
+      "date": "2026-05-10",
+      "matches": [
+        { "home": "Michel FC", "away": "Carcará da Serra" },
+        { "home": "Avenida Aurora", "away": "Clube do Farol" },
+        { "home": "Atlético Mar Azul", "away": "Esmeralda United" },
+        { "home": "Bairro do Vapor", "away": "Ferroviários 47" },
+        { "home": "Barões do Cerrado", "away": "Cavaleiros do Asfalto" },
+        { "home": "Bravos de Jatobá", "away": "Cais do Norte FC" },
+        { "home": "Dragões do Ipiranga", "away": "Jardim das Palmeiras" },
+        { "home": "Estrela do Litoral", "away": "Guardiões da Lagoa" },
+        { "home": "Flamígero SC", "away": "Imperial do Horizonte" },
+        { "home": "Gaviões do Porto", "away": "Lobos do Vale" }
+      ]
+    },
+    {
+      "round": 8,
+      "date": "2026-05-17",
+      "matches": [
+        { "home": "Cavaleiros do Asfalto", "away": "Michel FC" },
+        { "home": "Carcará da Serra", "away": "Clube do Farol" },
+        { "home": "Avenida Aurora", "away": "Esmeralda United" },
+        { "home": "Atlético Mar Azul", "away": "Ferroviários 47" },
+        { "home": "Bairro do Vapor", "away": "Flamígero SC" },
+        { "home": "Barões do Cerrado", "away": "Cais do Norte FC" },
+        { "home": "Bravos de Jatobá", "away": "Estrela do Litoral" },
+        { "home": "Dragões do Ipiranga", "away": "Guardiões da Lagoa" },
+        { "home": "Gaviões do Porto", "away": "Jardim das Palmeiras" },
+        { "home": "Imperial do Horizonte", "away": "Lobos do Vale" }
+      ]
+    },
+    {
+      "round": 9,
+      "date": "2026-05-24",
+      "matches": [
+        { "home": "Michel FC", "away": "Clube do Farol" },
+        { "home": "Avenida Aurora", "away": "Ferroviários 47" },
+        { "home": "Atlético Mar Azul", "away": "Flamígero SC" },
+        { "home": "Bairro do Vapor", "away": "Gaviões do Porto" },
+        { "home": "Barões do Cerrado", "away": "Esmeralda United" },
+        { "home": "Bravos de Jatobá", "away": "Carcará da Serra" },
+        { "home": "Cais do Norte FC", "away": "Cavaleiros do Asfalto" },
+        { "home": "Dragões do Ipiranga", "away": "Lobos do Vale" },
+        { "home": "Estrela do Litoral", "away": "Jardim das Palmeiras" },
+        { "home": "Guardiões da Lagoa", "away": "Imperial do Horizonte" }
+      ]
+    },
+    {
+      "round": 10,
+      "date": "2026-05-31",
+      "matches": [
+        { "home": "Esmeralda United", "away": "Michel FC" },
+        { "home": "Clube do Farol", "away": "Ferroviários 47" },
+        { "home": "Avenida Aurora", "away": "Flamígero SC" },
+        { "home": "Atlético Mar Azul", "away": "Gaviões do Porto" },
+        { "home": "Bairro do Vapor", "away": "Imperial do Horizonte" },
+        { "home": "Barões do Cerrado", "away": "Dragões do Ipiranga" },
+        { "home": "Bravos de Jatobá", "away": "Guardiões da Lagoa" },
+        { "home": "Cais do Norte FC", "away": "Estrela do Litoral" },
+        { "home": "Carcará da Serra", "away": "Jardim das Palmeiras" },
+        { "home": "Cavaleiros do Asfalto", "away": "Lobos do Vale" }
+      ]
+    },
+    {
+      "round": 11,
+      "date": "2026-06-07",
+      "matches": [
+        { "home": "Michel FC", "away": "Ferroviários 47" },
+        { "home": "Avenida Aurora", "away": "Gaviões do Porto" },
+        { "home": "Atlético Mar Azul", "away": "Guardiões da Lagoa" },
+        { "home": "Bairro do Vapor", "away": "Jardim das Palmeiras" },
+        { "home": "Barões do Cerrado", "away": "Flamígero SC" },
+        { "home": "Bravos de Jatobá", "away": "Esmeralda United" },
+        { "home": "Cais do Norte FC", "away": "Carcará da Serra" },
+        { "home": "Cavaleiros do Asfalto", "away": "Imperial do Horizonte" },
+        { "home": "Clube do Farol", "away": "Lobos do Vale" },
+        { "home": "Dragões do Ipiranga", "away": "Estrela do Litoral" }
+      ]
+    },
+    {
+      "round": 12,
+      "date": "2026-06-14",
+      "matches": [
+        { "home": "Flamígero SC", "away": "Michel FC" },
+        { "home": "Ferroviários 47", "away": "Gaviões do Porto" },
+        { "home": "Avenida Aurora", "away": "Guardiões da Lagoa" },
+        { "home": "Atlético Mar Azul", "away": "Jardim das Palmeiras" },
+        { "home": "Bairro do Vapor", "away": "Lobos do Vale" },
+        { "home": "Barões do Cerrado", "away": "Imperial do Horizonte" },
+        { "home": "Bravos de Jatobá", "away": "Estrela do Litoral" },
+        { "home": "Cais do Norte FC", "away": "Dragões do Ipiranga" },
+        { "home": "Carcará da Serra", "away": "Esmeralda United" },
+        { "home": "Cavaleiros do Asfalto", "away": "Clube do Farol" }
+      ]
+    },
+    {
+      "round": 13,
+      "date": "2026-06-21",
+      "matches": [
+        { "home": "Michel FC", "away": "Gaviões do Porto" },
+        { "home": "Avenida Aurora", "away": "Jardim das Palmeiras" },
+        { "home": "Atlético Mar Azul", "away": "Imperial do Horizonte" },
+        { "home": "Bairro do Vapor", "away": "Guardiões da Lagoa" },
+        { "home": "Barões do Cerrado", "away": "Lobos do Vale" },
+        { "home": "Bravos de Jatobá", "away": "Ferroviários 47" },
+        { "home": "Cais do Norte FC", "away": "Flamígero SC" },
+        { "home": "Carcará da Serra", "away": "Estrela do Litoral" },
+        { "home": "Cavaleiros do Asfalto", "away": "Dragões do Ipiranga" },
+        { "home": "Clube do Farol", "away": "Esmeralda United" }
+      ]
+    },
+    {
+      "round": 14,
+      "date": "2026-06-28",
+      "matches": [
+        { "home": "Guardiões da Lagoa", "away": "Michel FC" },
+        { "home": "Gaviões do Porto", "away": "Jardim das Palmeiras" },
+        { "home": "Avenida Aurora", "away": "Imperial do Horizonte" },
+        { "home": "Atlético Mar Azul", "away": "Lobos do Vale" },
+        { "home": "Bairro do Vapor", "away": "Estrela do Litoral" },
+        { "home": "Barões do Cerrado", "away": "Ferroviários 47" },
+        { "home": "Bravos de Jatobá", "away": "Flamígero SC" },
+        { "home": "Cais do Norte FC", "away": "Esmeralda United" },
+        { "home": "Carcará da Serra", "away": "Dragões do Ipiranga" },
+        { "home": "Cavaleiros do Asfalto", "away": "Clube do Farol" }
+      ]
+    },
+    {
+      "round": 15,
+      "date": "2026-07-05",
+      "matches": [
+        { "home": "Michel FC", "away": "Jardim das Palmeiras" },
+        { "home": "Avenida Aurora", "away": "Lobos do Vale" },
+        { "home": "Atlético Mar Azul", "away": "Estrela do Litoral" },
+        { "home": "Bairro do Vapor", "away": "Dragões do Ipiranga" },
+        { "home": "Barões do Cerrado", "away": "Flamígero SC" },
+        { "home": "Bravos de Jatobá", "away": "Gaviões do Porto" },
+        { "home": "Cais do Norte FC", "away": "Ferroviários 47" },
+        { "home": "Carcará da Serra", "away": "Esmeralda United" },
+        { "home": "Cavaleiros do Asfalto", "away": "Guardiões da Lagoa" },
+        { "home": "Clube do Farol", "away": "Imperial do Horizonte" }
+      ]
+    },
+    {
+      "round": 16,
+      "date": "2026-07-12",
+      "matches": [
+        { "home": "Imperial do Horizonte", "away": "Michel FC" },
+        { "home": "Jardim das Palmeiras", "away": "Lobos do Vale" },
+        { "home": "Avenida Aurora", "away": "Estrela do Litoral" },
+        { "home": "Atlético Mar Azul", "away": "Dragões do Ipiranga" },
+        { "home": "Bairro do Vapor", "away": "Guardiões da Lagoa" },
+        { "home": "Barões do Cerrado", "away": "Gaviões do Porto" },
+        { "home": "Bravos de Jatobá", "away": "Ferroviários 47" },
+        { "home": "Cais do Norte FC", "away": "Flamígero SC" },
+        { "home": "Carcará da Serra", "away": "Esmeralda United" },
+        { "home": "Cavaleiros do Asfalto", "away": "Clube do Farol" }
+      ]
+    },
+    {
+      "round": 17,
+      "date": "2026-07-19",
+      "matches": [
+        { "home": "Michel FC", "away": "Lobos do Vale" },
+        { "home": "Avenida Aurora", "away": "Guardiões da Lagoa" },
+        { "home": "Atlético Mar Azul", "away": "Jardim das Palmeiras" },
+        { "home": "Bairro do Vapor", "away": "Imperial do Horizonte" },
+        { "home": "Barões do Cerrado", "away": "Ferroviários 47" },
+        { "home": "Bravos de Jatobá", "away": "Flamígero SC" },
+        { "home": "Cais do Norte FC", "away": "Gaviões do Porto" },
+        { "home": "Carcará da Serra", "away": "Estrela do Litoral" },
+        { "home": "Cavaleiros do Asfalto", "away": "Dragões do Ipiranga" },
+        { "home": "Clube do Farol", "away": "Esmeralda United" }
+      ]
+    },
+    {
+      "round": 18,
+      "date": "2026-07-26",
+      "matches": [
+        { "home": "Atlético Mar Azul", "away": "Michel FC" },
+        { "home": "Bairro do Vapor", "away": "Avenida Aurora" },
+        { "home": "Barões do Cerrado", "away": "Bravos de Jatobá" },
+        { "home": "Cais do Norte FC", "away": "Carcará da Serra" },
+        { "home": "Cavaleiros do Asfalto", "away": "Clube do Farol" },
+        { "home": "Dragões do Ipiranga", "away": "Esmeralda United" },
+        { "home": "Estrela do Litoral", "away": "Ferroviários 47" },
+        { "home": "Flamígero SC", "away": "Gaviões do Porto" },
+        { "home": "Guardiões da Lagoa", "away": "Imperial do Horizonte" },
+        { "home": "Jardim das Palmeiras", "away": "Lobos do Vale" }
+      ]
+    },
+    {
+      "round": 19,
+      "date": "2026-08-02",
+      "matches": [
+        { "home": "Avenida Aurora", "away": "Michel FC" },
+        { "home": "Atlético Mar Azul", "away": "Bairro do Vapor" },
+        { "home": "Bravos de Jatobá", "away": "Barões do Cerrado" },
+        { "home": "Carcará da Serra", "away": "Cais do Norte FC" },
+        { "home": "Clube do Farol", "away": "Cavaleiros do Asfalto" },
+        { "home": "Esmeralda United", "away": "Dragões do Ipiranga" },
+        { "home": "Ferroviários 47", "away": "Estrela do Litoral" },
+        { "home": "Gaviões do Porto", "away": "Flamígero SC" },
+        { "home": "Imperial do Horizonte", "away": "Guardiões da Lagoa" },
+        { "home": "Lobos do Vale", "away": "Jardim das Palmeiras" }
+      ]
+    },
+    {
+      "round": 20,
+      "date": "2026-08-09",
+      "matches": [
+        { "home": "Michel FC", "away": "Bairro do Vapor" },
+        { "home": "Barões do Cerrado", "away": "Avenida Aurora" },
+        { "home": "Cais do Norte FC", "away": "Bravos de Jatobá" },
+        { "home": "Cavaleiros do Asfalto", "away": "Carcará da Serra" },
+        { "home": "Dragões do Ipiranga", "away": "Clube do Farol" },
+        { "home": "Estrela do Litoral", "away": "Esmeralda United" },
+        { "home": "Flamígero SC", "away": "Ferroviários 47" },
+        { "home": "Guardiões da Lagoa", "away": "Gaviões do Porto" },
+        { "home": "Jardim das Palmeiras", "away": "Imperial do Horizonte" },
+        { "home": "Lobos do Vale", "away": "Atlético Mar Azul" }
+      ]
+    },
+    {
+      "round": 21,
+      "date": "2026-08-16",
+      "matches": [
+        { "home": "Michel FC", "away": "Cavaleiros do Asfalto" },
+        { "home": "Barões do Cerrado", "away": "Atlético Mar Azul" },
+        { "home": "Cais do Norte FC", "away": "Avenida Aurora" },
+        { "home": "Dragões do Ipiranga", "away": "Bravos de Jatobá" },
+        { "home": "Estrela do Litoral", "away": "Cavaleiros do Asfalto" },
+        { "home": "Flamígero SC", "away": "Carcará da Serra" },
+        { "home": "Guardiões da Lagoa", "away": "Clube do Farol" },
+        { "home": "Jardim das Palmeiras", "away": "Esmeralda United" },
+        { "home": "Lobos do Vale", "away": "Ferroviários 47" },
+        { "home": "Imperial do Horizonte", "away": "Gaviões do Porto" }
+      ]
+    },
+    {
+      "round": 22,
+      "date": "2026-08-23",
+      "matches": [
+        { "home": "Barões do Cerrado", "away": "Michel FC" },
+        { "home": "Bravos de Jatobá", "away": "Avenida Aurora" },
+        { "home": "Carcará da Serra", "away": "Atlético Mar Azul" },
+        { "home": "Clube do Farol", "away": "Bairro do Vapor" },
+        { "home": "Esmeralda United", "away": "Cais do Norte FC" },
+        { "home": "Ferroviários 47", "away": "Cavaleiros do Asfalto" },
+        { "home": "Gaviões do Porto", "away": "Dragões do Ipiranga" },
+        { "home": "Imperial do Horizonte", "away": "Estrela do Litoral" },
+        { "home": "Lobos do Vale", "away": "Flamígero SC" },
+        { "home": "Jardim das Palmeiras", "away": "Guardiões da Lagoa" }
+      ]
+    },
+    {
+      "round": 23,
+      "date": "2026-08-30",
+      "matches": [
+        { "home": "Michel FC", "away": "Bravos de Jatobá" },
+        { "home": "Carcará da Serra", "away": "Barões do Cerrado" },
+        { "home": "Cavaleiros do Asfalto", "away": "Avenida Aurora" },
+        { "home": "Clube do Farol", "away": "Atlético Mar Azul" },
+        { "home": "Esmeralda United", "away": "Bairro do Vapor" },
+        { "home": "Ferroviários 47", "away": "Cais do Norte FC" },
+        { "home": "Imperial do Horizonte", "away": "Dragões do Ipiranga" },
+        { "home": "Jardim das Palmeiras", "away": "Estrela do Litoral" },
+        { "home": "Guardiões da Lagoa", "away": "Flamígero SC" },
+        { "home": "Lobos do Vale", "away": "Gaviões do Porto" }
+      ]
+    },
+    {
+      "round": 24,
+      "date": "2026-09-06",
+      "matches": [
+        { "home": "Carcará da Serra", "away": "Michel FC" },
+        { "home": "Clube do Farol", "away": "Avenida Aurora" },
+        { "home": "Esmeralda United", "away": "Atlético Mar Azul" },
+        { "home": "Ferroviários 47", "away": "Bairro do Vapor" },
+        { "home": "Cavaleiros do Asfalto", "away": "Barões do Cerrado" },
+        { "home": "Cais do Norte FC", "away": "Bravos de Jatobá" },
+        { "home": "Jardim das Palmeiras", "away": "Dragões do Ipiranga" },
+        { "home": "Guardiões da Lagoa", "away": "Estrela do Litoral" },
+        { "home": "Imperial do Horizonte", "away": "Flamígero SC" },
+        { "home": "Lobos do Vale", "away": "Gaviões do Porto" }
+      ]
+    },
+    {
+      "round": 25,
+      "date": "2026-09-13",
+      "matches": [
+        { "home": "Michel FC", "away": "Clube do Farol" },
+        { "home": "Ferroviários 47", "away": "Avenida Aurora" },
+        { "home": "Flamígero SC", "away": "Atlético Mar Azul" },
+        { "home": "Gaviões do Porto", "away": "Bairro do Vapor" },
+        { "home": "Esmeralda United", "away": "Barões do Cerrado" },
+        { "home": "Carcará da Serra", "away": "Bravos de Jatobá" },
+        { "home": "Cavaleiros do Asfalto", "away": "Cais do Norte FC" },
+        { "home": "Lobos do Vale", "away": "Dragões do Ipiranga" },
+        { "home": "Jardim das Palmeiras", "away": "Estrela do Litoral" },
+        { "home": "Imperial do Horizonte", "away": "Guardiões da Lagoa" }
+      ]
+    },
+    {
+      "round": 26,
+      "date": "2026-09-20",
+      "matches": [
+        { "home": "Michel FC", "away": "Esmeralda United" },
+        { "home": "Ferroviários 47", "away": "Clube do Farol" },
+        { "home": "Flamígero SC", "away": "Avenida Aurora" },
+        { "home": "Gaviões do Porto", "away": "Atlético Mar Azul" },
+        { "home": "Imperial do Horizonte", "away": "Bairro do Vapor" },
+        { "home": "Dragões do Ipiranga", "away": "Barões do Cerrado" },
+        { "home": "Guardiões da Lagoa", "away": "Bravos de Jatobá" },
+        { "home": "Estrela do Litoral", "away": "Cais do Norte FC" },
+        { "home": "Jardim das Palmeiras", "away": "Carcará da Serra" },
+        { "home": "Lobos do Vale", "away": "Cavaleiros do Asfalto" }
+      ]
+    },
+    {
+      "round": 27,
+      "date": "2026-09-27",
+      "matches": [
+        { "home": "Ferroviários 47", "away": "Michel FC" },
+        { "home": "Gaviões do Porto", "away": "Avenida Aurora" },
+        { "home": "Guardiões da Lagoa", "away": "Atlético Mar Azul" },
+        { "home": "Jardim das Palmeiras", "away": "Bairro do Vapor" },
+        { "home": "Flamígero SC", "away": "Barões do Cerrado" },
+        { "home": "Esmeralda United", "away": "Bravos de Jatobá" },
+        { "home": "Carcará da Serra", "away": "Cais do Norte FC" },
+        { "home": "Imperial do Horizonte", "away": "Cavaleiros do Asfalto" },
+        { "home": "Lobos do Vale", "away": "Clube do Farol" },
+        { "home": "Estrela do Litoral", "away": "Dragões do Ipiranga" }
+      ]
+    },
+    {
+      "round": 28,
+      "date": "2026-10-04",
+      "matches": [
+        { "home": "Michel FC", "away": "Flamígero SC" },
+        { "home": "Gaviões do Porto", "away": "Ferroviários 47" },
+        { "home": "Guardiões da Lagoa", "away": "Avenida Aurora" },
+        { "home": "Jardim das Palmeiras", "away": "Atlético Mar Azul" },
+        { "home": "Lobos do Vale", "away": "Bairro do Vapor" },
+        { "home": "Imperial do Horizonte", "away": "Barões do Cerrado" },
+        { "home": "Estrela do Litoral", "away": "Bravos de Jatobá" },
+        { "home": "Dragões do Ipiranga", "away": "Cais do Norte FC" },
+        { "home": "Esmeralda United", "away": "Carcará da Serra" },
+        { "home": "Clube do Farol", "away": "Cavaleiros do Asfalto" }
+      ]
+    },
+    {
+      "round": 29,
+      "date": "2026-10-11",
+      "matches": [
+        { "home": "Michel FC", "away": "Gaviões do Porto" },
+        { "home": "Jardim das Palmeiras", "away": "Avenida Aurora" },
+        { "home": "Imperial do Horizonte", "away": "Atlético Mar Azul" },
+        { "home": "Guardiões da Lagoa", "away": "Bairro do Vapor" },
+        { "home": "Lobos do Vale", "away": "Barões do Cerrado" },
+        { "home": "Ferroviários 47", "away": "Bravos de Jatobá" },
+        { "home": "Flamígero SC", "away": "Cais do Norte FC" },
+        { "home": "Estrela do Litoral", "away": "Carcará da Serra" },
+        { "home": "Dragões do Ipiranga", "away": "Cavaleiros do Asfalto" },
+        { "home": "Esmeralda United", "away": "Clube do Farol" }
+      ]
+    },
+    {
+      "round": 30,
+      "date": "2026-10-18",
+      "matches": [
+        { "home": "Michel FC", "away": "Guardiões da Lagoa" },
+        { "home": "Jardim das Palmeiras", "away": "Gaviões do Porto" },
+        { "home": "Imperial do Horizonte", "away": "Avenida Aurora" },
+        { "home": "Lobos do Vale", "away": "Atlético Mar Azul" },
+        { "home": "Estrela do Litoral", "away": "Bairro do Vapor" },
+        { "home": "Ferroviários 47", "away": "Barões do Cerrado" },
+        { "home": "Flamígero SC", "away": "Bravos de Jatobá" },
+        { "home": "Esmeralda United", "away": "Cais do Norte FC" },
+        { "home": "Dragões do Ipiranga", "away": "Carcará da Serra" },
+        { "home": "Clube do Farol", "away": "Cavaleiros do Asfalto" }
+      ]
+    },
+    {
+      "round": 31,
+      "date": "2026-10-25",
+      "matches": [
+        { "home": "Michel FC", "away": "Jardim das Palmeiras" },
+        { "home": "Lobos do Vale", "away": "Avenida Aurora" },
+        { "home": "Estrela do Litoral", "away": "Atlético Mar Azul" },
+        { "home": "Dragões do Ipiranga", "away": "Bairro do Vapor" },
+        { "home": "Flamígero SC", "away": "Barões do Cerrado" },
+        { "home": "Gaviões do Porto", "away": "Bravos de Jatobá" },
+        { "home": "Ferroviários 47", "away": "Cais do Norte FC" },
+        { "home": "Esmeralda United", "away": "Carcará da Serra" },
+        { "home": "Guardiões da Lagoa", "away": "Cavaleiros do Asfalto" },
+        { "home": "Imperial do Horizonte", "away": "Clube do Farol" }
+      ]
+    },
+    {
+      "round": 32,
+      "date": "2026-11-01",
+      "matches": [
+        { "home": "Michel FC", "away": "Imperial do Horizonte" },
+        { "home": "Lobos do Vale", "away": "Jardim das Palmeiras" },
+        { "home": "Estrela do Litoral", "away": "Avenida Aurora" },
+        { "home": "Dragões do Ipiranga", "away": "Atlético Mar Azul" },
+        { "home": "Guardiões da Lagoa", "away": "Bairro do Vapor" },
+        { "home": "Gaviões do Porto", "away": "Barões do Cerrado" },
+        { "home": "Ferroviários 47", "away": "Bravos de Jatobá" },
+        { "home": "Flamígero SC", "away": "Cais do Norte FC" },
+        { "home": "Esmeralda United", "away": "Carcará da Serra" },
+        { "home": "Clube do Farol", "away": "Cavaleiros do Asfalto" }
+      ]
+    },
+    {
+      "round": 33,
+      "date": "2026-11-08",
+      "matches": [
+        { "home": "Lobos do Vale", "away": "Michel FC" },
+        { "home": "Guardiões da Lagoa", "away": "Avenida Aurora" },
+        { "home": "Jardim das Palmeiras", "away": "Atlético Mar Azul" },
+        { "home": "Imperial do Horizonte", "away": "Bairro do Vapor" },
+        { "home": "Ferroviários 47", "away": "Barões do Cerrado" },
+        { "home": "Flamígero SC", "away": "Bravos de Jatobá" },
+        { "home": "Gaviões do Porto", "away": "Cais do Norte FC" },
+        { "home": "Estrela do Litoral", "away": "Carcará da Serra" },
+        { "home": "Dragões do Ipiranga", "away": "Cavaleiros do Asfalto" },
+        { "home": "Esmeralda United", "away": "Clube do Farol" }
+      ]
+    },
+    {
+      "round": 34,
+      "date": "2026-11-15",
+      "matches": [
+        { "home": "Michel FC", "away": "Dragões do Ipiranga" },
+        { "home": "Avenida Aurora", "away": "Bairro do Vapor" },
+        { "home": "Atlético Mar Azul", "away": "Barões do Cerrado" },
+        { "home": "Bravos de Jatobá", "away": "Cais do Norte FC" },
+        { "home": "Carcará da Serra", "away": "Cavaleiros do Asfalto" },
+        { "home": "Clube do Farol", "away": "Esmeralda United" },
+        { "home": "Ferroviários 47", "away": "Flamígero SC" },
+        { "home": "Gaviões do Porto", "away": "Guardiões da Lagoa" },
+        { "home": "Imperial do Horizonte", "away": "Jardim das Palmeiras" },
+        { "home": "Lobos do Vale", "away": "Estrela do Litoral" }
+      ]
+    },
+    {
+      "round": 35,
+      "date": "2026-11-22",
+      "matches": [
+        { "home": "Michel FC", "away": "Cais do Norte FC" },
+        { "home": "Avenida Aurora", "away": "Carcará da Serra" },
+        { "home": "Atlético Mar Azul", "away": "Cavaleiros do Asfalto" },
+        { "home": "Bairro do Vapor", "away": "Clube do Farol" },
+        { "home": "Barões do Cerrado", "away": "Esmeralda United" },
+        { "home": "Bravos de Jatobá", "away": "Dragões do Ipiranga" },
+        { "home": "Estrela do Litoral", "away": "Flamígero SC" },
+        { "home": "Ferroviários 47", "away": "Gaviões do Porto" },
+        { "home": "Guardiões da Lagoa", "away": "Jardim das Palmeiras" },
+        { "home": "Imperial do Horizonte", "away": "Lobos do Vale" }
+      ]
+    },
+    {
+      "round": 36,
+      "date": "2026-11-29",
+      "matches": [
+        { "home": "Michel FC", "away": "Bravos de Jatobá" },
+        { "home": "Avenida Aurora", "away": "Cavaleiros do Asfalto" },
+        { "home": "Atlético Mar Azul", "away": "Clube do Farol" },
+        { "home": "Bairro do Vapor", "away": "Esmeralda United" },
+        { "home": "Barões do Cerrado", "away": "Carcará da Serra" },
+        { "home": "Cais do Norte FC", "away": "Ferroviários 47" },
+        { "home": "Dragões do Ipiranga", "away": "Gaviões do Porto" },
+        { "home": "Estrela do Litoral", "away": "Guardiões da Lagoa" },
+        { "home": "Flamígero SC", "away": "Jardim das Palmeiras" },
+        { "home": "Imperial do Horizonte", "away": "Lobos do Vale" }
+      ]
+    },
+    {
+      "round": 37,
+      "date": "2026-12-06",
+      "matches": [
+        { "home": "Michel FC", "away": "Estrela do Litoral" },
+        { "home": "Avenida Aurora", "away": "Dragões do Ipiranga" },
+        { "home": "Atlético Mar Azul", "away": "Esmeralda United" },
+        { "home": "Bairro do Vapor", "away": "Ferroviários 47" },
+        { "home": "Barões do Cerrado", "away": "Flamígero SC" },
+        { "home": "Bravos de Jatobá", "away": "Gaviões do Porto" },
+        { "home": "Cais do Norte FC", "away": "Guardiões da Lagoa" },
+        { "home": "Carcará da Serra", "away": "Imperial do Horizonte" },
+        { "home": "Cavaleiros do Asfalto", "away": "Jardim das Palmeiras" },
+        { "home": "Clube do Farol", "away": "Lobos do Vale" }
+      ]
+    },
+    {
+      "round": 38,
+      "date": "2026-12-07",
+      "matches": [
+        { "home": "Avenida Aurora", "away": "Michel FC" },
+        { "home": "Bairro do Vapor", "away": "Atlético Mar Azul" },
+        { "home": "Barões do Cerrado", "away": "Bravos de Jatobá" },
+        { "home": "Cais do Norte FC", "away": "Carcará da Serra" },
+        { "home": "Cavaleiros do Asfalto", "away": "Clube do Farol" },
+        { "home": "Dragões do Ipiranga", "away": "Esmeralda United" },
+        { "home": "Estrela do Litoral", "away": "Ferroviários 47" },
+        { "home": "Flamígero SC", "away": "Gaviões do Porto" },
+        { "home": "Guardiões da Lagoa", "away": "Imperial do Horizonte" },
+        { "home": "Jardim das Palmeiras", "away": "Lobos do Vale" }
+      ]
+    }
+  ],
+  "notes": {
+    "round_dates_policy": "Datas distribuídas semanalmente a partir de 2026-03-29 e final em 2026-12-07 (rodada 38).",
+    "user_team": "Michel FC"
+  }
+}
