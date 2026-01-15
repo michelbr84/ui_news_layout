@@ -3,9 +3,21 @@ import os
 import sys
 import pygame
 import re
+import urllib.request
+import urllib.error
+from datetime import datetime
 
 pygame.init()
 pygame.display.set_caption("Noticias (Pygame Mock)")
+
+# -----------------------------
+# Remote JSON + Webhook
+# -----------------------------
+JSON_URL = "https://raw.githubusercontent.com/michelbr84/ui_news_layout/refs/heads/main/news_data.json"
+WEBHOOK_URL = "https://michelbr84.app.n8n.cloud/webhook/ui_news_layout"
+CACHE_PATH = "news_cache.json"  # cache local (fallback se falhar internet)
+
+HTTP_TIMEOUT_SEC = 6
 
 # -----------------------------
 # Fullscreen (real)
@@ -47,10 +59,8 @@ BOTTOM_TABS = ["Contratos e Imprensa", "Transferências", "Empregos", "Registos"
 ALL_CATEGORIES = TOP_TABS[1:] + BOTTOM_TABS  # sem "Todas"
 
 # -----------------------------
-# JSON
+# DEFAULT JSON (fallback)
 # -----------------------------
-DEFAULT_JSON_PATH = "news_data.json"
-
 DEFAULT_JSON = {
     "coach_name": "Michel Duek",
     "sidebar_date": "Quinta-Feira\n1.1.26 TAR",
@@ -70,26 +80,82 @@ DEFAULT_JSON = {
     ]
 }
 
-def ensure_default_json(path: str) -> None:
-    if not os.path.exists(path):
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(DEFAULT_JSON, f, ensure_ascii=False, indent=2)
+# -----------------------------
+# Utils HTTP (no requests)
+# -----------------------------
+def http_get_json(url: str, timeout: int = HTTP_TIMEOUT_SEC) -> dict:
+    req = urllib.request.Request(
+        url,
+        method="GET",
+        headers={
+            "User-Agent": "ui_news_layout/1.0",
+            "Accept": "application/json",
+            "Cache-Control": "no-cache",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        raw = resp.read()
+    # tenta utf-8, senão fallback
+    try:
+        txt = raw.decode("utf-8")
+    except Exception:
+        txt = raw.decode("latin-1", errors="replace")
+    return json.loads(txt)
 
+def http_post_json(url: str, payload: dict, timeout: int = HTTP_TIMEOUT_SEC) -> tuple[int, str]:
+    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=data,
+        method="POST",
+        headers={
+            "User-Agent": "ui_news_layout/1.0",
+            "Content-Type": "application/json; charset=utf-8",
+            "Accept": "application/json,text/plain,*/*",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        status = getattr(resp, "status", 200)
+        raw = resp.read()
+    try:
+        txt = raw.decode("utf-8")
+    except Exception:
+        txt = raw.decode("latin-1", errors="replace")
+    return status, txt
+
+def save_cache(data: dict) -> None:
+    try:
+        with open(CACHE_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
+def load_cache() -> dict | None:
+    if not os.path.exists(CACHE_PATH):
+        return None
+    try:
+        with open(CACHE_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+# -----------------------------
+# Parsing/sorting helpers
+# -----------------------------
 def _norm_spaces(s: str) -> str:
     return re.sub(r"\s+", " ", s.strip())
 
 def parse_date_key(date_str: str):
     """
-    Tenta converter strings do tipo:
+    Converte strings do tipo:
       - "Qui 13 Jan NTE"
       - "Qua 31 Dez TAR"
       - "25.9.04 TAR"
-    em uma chave ordenável.
+    em uma chave ordenável (year, month, day, period_rank).
     Se falhar, retorna None.
     """
     s = _norm_spaces(str(date_str))
 
-    # prioridade por período (maior = mais recente dentro do dia)
     period_rank = {
         "MAD": 0, "MAN": 0, "MNH": 0, "AM": 0,
         "TAR": 1, "PM": 1,
@@ -112,18 +178,13 @@ def parse_date_key(date_str: str):
         year_raw = m.group(3)
         year = int(year_raw)
         if year < 100:
-            # heurística: 00-79 => 2000, 80-99 => 1900
             year = 2000 + year if year <= 79 else 1900 + year
         per = (m.group(4) or "").upper()
         pr = period_rank.get(per, -1)
         return (year, month, day, pr)
 
-    # formato textual: (dia_semana) dia mês período
     tokens = s.split(" ")
     if len(tokens) >= 3:
-        # exemplos:
-        # "Qua 31 Dez TAR" => tokens[1]=31 tokens[2]=Dez tokens[3]=TAR
-        # "13 Jan TAR" (sem dia da semana) => tokens[0]=13 tokens[1]=Jan tokens[2]=TAR
         def try_parse_at(idx_day, idx_month, idx_period):
             try:
                 day = int(re.sub(r"\D", "", tokens[idx_day]))
@@ -133,42 +194,42 @@ def parse_date_key(date_str: str):
                     return None
                 per = tokens[idx_period].upper() if idx_period < len(tokens) else ""
                 pr = period_rank.get(per, -1)
-                # sem ano -> assume 2026 (p/ mock). Você pode trocar isso.
-                year = 2026
+                # sem ano -> tenta inferir pelo "agora"
+                year = datetime.now().year
                 return (year, month, day, pr)
             except Exception:
                 return None
 
-        # com dia da semana
         key = try_parse_at(1, 2, 3) if len(tokens) >= 4 else None
         if key:
             return key
-        # sem dia da semana
         key = try_parse_at(0, 1, 2) if len(tokens) >= 3 else None
         if key:
             return key
 
     return None
 
-def load_data(path: str) -> dict:
-    ensure_default_json(path)
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+def normalize_data(data: dict) -> dict:
+    if not isinstance(data, dict):
+        data = {}
 
-    if "coach_name" not in data or not isinstance(data["coach_name"], str) or not data["coach_name"].strip():
-        data["coach_name"] = "Michel Duek"
+    coach = data.get("coach_name")
+    if not isinstance(coach, str) or not coach.strip():
+        data["coach_name"] = DEFAULT_JSON["coach_name"]
 
-    if "sidebar_date" not in data or not isinstance(data["sidebar_date"], str) or not data["sidebar_date"].strip():
-        data["sidebar_date"] = "Quinta-Feira\n1.1.26 TAR"
+    sbd = data.get("sidebar_date")
+    if not isinstance(sbd, str) or not sbd.strip():
+        data["sidebar_date"] = DEFAULT_JSON["sidebar_date"]
 
-    if "news" not in data or not isinstance(data["news"], list):
-        data["news"] = []
+    news = data.get("news")
+    if not isinstance(news, list):
+        news = []
 
     normalized = []
-    for item in data["news"]:
+    for item in news:
         if not isinstance(item, dict):
             continue
-
+        date = str(item.get = item.get("date", "")).strip() if "date" in item else str(item.get("date", "")).strip()
         date = str(item.get("date", "")).strip() or "—"
         title = str(item.get("title", "")).strip()
         desc = str(item.get("description", "")).strip() or "—"
@@ -178,7 +239,6 @@ def load_data(path: str) -> dict:
             continue
 
         if cat not in ALL_CATEGORIES:
-            # fallback: se não veio category, assume Mensagens
             cat = "Mensagens"
 
         sort_key = parse_date_key(date)
@@ -193,6 +253,24 @@ def load_data(path: str) -> dict:
 
     data["news"] = normalized
     return data
+
+def fetch_data_remote_or_cache() -> dict:
+    # 1) tenta remoto
+    try:
+        d = http_get_json(JSON_URL)
+        d = normalize_data(d)
+        save_cache(d)
+        return d
+    except Exception as e:
+        print("[JSON] Falha remoto:", e)
+
+    # 2) tenta cache
+    cached = load_cache()
+    if cached is not None:
+        return normalize_data(cached)
+
+    # 3) fallback default
+    return normalize_data(DEFAULT_JSON)
 
 # -----------------------------
 # Responsive scaling
@@ -211,6 +289,9 @@ def Sy(v: float) -> int:
 
 def Sf(v: float) -> int:
     return max(10, int(round(v * s_font)))
+
+def clamp(v: int, lo: int, hi: int) -> int:
+    return max(lo, min(hi, v))
 
 # -----------------------------
 # Fonts (scaled)
@@ -307,9 +388,8 @@ def draw_sidebar_button(surface, rect, label, *, hovered=False, selected=False):
     pad_y = Sy(6)
     max_w = rect.width - pad_x * 2
     max_h = rect.height - pad_y * 2
-
-    # fonte dinâmica para não "vazar" do botão na sidebar
     f = fit_font_for_multiline(lines, max_w, max_h, start_px=Sf(16), bold=False, min_px=Sf(10))
+
     line_h = f.get_linesize()
     total_h = line_h * len(lines)
     y = rect.centery - total_h // 2
@@ -355,30 +435,22 @@ def build_view(news_all, active_category, filter_text):
         items = [n for n in news_all if n.get("category") == active_category]
 
     if ft:
-        items = [n for n in items if ft in n.get("title", "").lower()]
+        items = [n for n in items if ft in n.get("title", "").lower() or ft in n.get("description", "").lower()]
 
-    # ordenação por data: usa _sort_key quando existe; senão mantém ordem original
-    # mais recente primeiro
-    def sort_tuple(n):
-        k = n.get("_sort_key")
-        # se não parseou, joga pro "fundo"
-        return k if k is not None else (0, 0, 0, -1)
-
-    # Para evitar que itens sem _sort_key dominem, fazemos stable sort:
-    # 1) separa parseáveis e não parseáveis
+    # ordenação por data (mais recente primeiro) quando parseia
     parse_ok = [n for n in items if n.get("_sort_key") is not None]
     parse_no = [n for n in items if n.get("_sort_key") is None]
-    parse_ok.sort(key=sort_tuple, reverse=True)
+    parse_ok.sort(key=lambda n: n["_sort_key"], reverse=True)
     return parse_ok + parse_no
 
 # -----------------------------
 # Main app
 # -----------------------------
-def run(json_path: str):
+def run():
     clock = pygame.time.Clock()
     BG = load_bg()
 
-    data = load_data(json_path)
+    data = fetch_data_remote_or_cache()
     coach_name = data["coach_name"]
     sidebar_date = data["sidebar_date"]
     news_all = data["news"] or [{
@@ -387,8 +459,8 @@ def run(json_path: str):
 
     # UI State
     active_category = "Todas"
-    filter_text = ""          # editable
-    filter_active = False     # cursor state
+    filter_text = ""
+    filter_active = False
 
     selected_news = 0
     news_scroll = 0
@@ -438,7 +510,7 @@ def run(json_path: str):
     TAB_H = max(Sy(36), Sy(44))
     tab_x = MAIN_X + Sx(10)
     tab_y = Sy(80)
-    gap = Sx(10)  # um pouco mais “solto” como no jogo
+    gap = Sx(10)
     tab_total_w = MAIN_W - Sx(20)
     tab_w = (tab_total_w - gap * (len(TOP_TABS) - 1)) // len(TOP_TABS)
     top_tab_rects = []
@@ -448,7 +520,7 @@ def run(json_path: str):
     # News list area
     LIST_X = MAIN_X + Sx(10)
     LIST_Y = tab_y + TAB_H + Sy(10)
-    LIST_W = max(Sx(360), int(MAIN_W * 0.30))  # mais parecido com o jogo (lista mais larga)
+    LIST_W = max(Sx(360), int(MAIN_W * 0.30))
     LIST_H = max(Sy(150), Sy(170))
 
     LIST_HEADER_H = Sy(30)
@@ -456,11 +528,14 @@ def run(json_path: str):
     list_panel = pygame.Rect(LIST_X, LIST_Y + LIST_HEADER_H, LIST_W, LIST_H - LIST_HEADER_H)
     scrollbar_rect = pygame.Rect(LIST_X + LIST_W - Sx(14), list_panel.top, Sx(14), list_panel.height)
 
-    # ---- Filtro (canto superior direito) + Botão (abaixo do filtro) ----
-    # exatamente como sua 2ª imagem: filtro em cima, "Ler Próxima" embaixo.
-    FILTER_H = Sy(24)
+    # --- Filtro (top-right) + Botão (abaixo) ---
+    FILTER_H = clamp(Sy(20), 18, 26)
+
     filter_label_w = Sx(70)
-    filter_input_w = max(Sx(240), int(MAIN_W * 0.22))
+
+    # "menos horizontal" para ler "Filtro:" com folga
+    filter_input_w = clamp(int(MAIN_W * 0.30), Sx(210), Sx(320))
+
     filter_x_right = MAIN_X + MAIN_W - Sx(20)
 
     filter_input_rect = pygame.Rect(
@@ -470,26 +545,26 @@ def run(json_path: str):
         FILTER_H
     )
     filter_label_rect = pygame.Rect(
-        filter_input_rect.left - Sx(10) - filter_label_w,
+        filter_input_rect.left - Sx(12) - filter_label_w,
         filter_input_rect.top,
         filter_label_w,
         FILTER_H
     )
 
-    # Botão "Ler Próxima" abaixo do filtro, no mesmo alinhamento horizontal.
+    # Botão "Ler Próxima" mais baixo e um pouco mais "gordinho"
+    READ_W = clamp(int(filter_input_rect.width * 0.72), Sx(260), Sx(420))
+    READ_H = clamp(Sy(34), 30, 48)
     read_next_rect = pygame.Rect(
-        filter_label_rect.left,
-        filter_input_rect.bottom + Sy(18),
-        filter_label_w + Sx(10) + filter_input_w,
-        Sy(30)
+        filter_x_right - READ_W,
+        filter_input_rect.bottom + Sy(30),  # desce mais
+        READ_W,
+        READ_H
     )
 
-    # Bottom tabs
+    # Bottom tabs / nav
     BOTTOM_TABS_H = max(Sy(34), Sy(42))
     NAV_Y = HEIGHT - Sy(55)
     NAV_H = Sy(40)
-
-    # deixa um espaço entre bottom tabs e nav, como no jogo
     BOTTOM_TABS_Y = NAV_Y - Sy(10) - BOTTOM_TABS_H
 
     bt_x = MAIN_X + Sx(10)
@@ -500,12 +575,10 @@ def run(json_path: str):
     for i in range(len(BOTTOM_TABS)):
         bottom_tab_rects.append(pygame.Rect(bt_x + i * (bt_w + gap), bt_y, bt_w, BOTTOM_TABS_H))
 
-    # Content area: começa depois da lista/filtro e termina antes das bottom tabs
+    # Content area
     CONTENT_X = MAIN_X + Sx(10)
     CONTENT_Y = list_panel.bottom + Sy(12)
     CONTENT_W = MAIN_W - Sx(20)
-
-    # bottom tabs “encostam” no topo da área inferior; o conteúdo vai até um pouco acima
     CONTENT_BOTTOM_LIMIT = BOTTOM_TABS_Y - Sy(10)
     CONTENT_H = max(Sy(240), CONTENT_BOTTOM_LIMIT - CONTENT_Y)
     content_rect = pygame.Rect(CONTENT_X, CONTENT_Y, CONTENT_W, CONTENT_H)
@@ -514,7 +587,43 @@ def run(json_path: str):
     btn_prev_rect = pygame.Rect(MAIN_X + Sx(10), NAV_Y, (MAIN_W - Sx(20)) // 2 - Sx(6), NAV_H)
     btn_next_rect = pygame.Rect(btn_prev_rect.right + Sx(12), NAV_Y, (MAIN_W - Sx(20)) // 2 - Sx(6), NAV_H)
 
-    # ------------- helpers -------------
+    # -----------------------------
+    # Data refresh helpers
+    # -----------------------------
+    def refresh_json(reason: str = ""):
+        nonlocal coach_name, sidebar_date, news_all
+        try:
+            d = fetch_data_remote_or_cache()
+            coach_name = d["coach_name"]
+            sidebar_date = d["sidebar_date"]
+            news_all = d["news"] or [{
+                "date": "—", "category": "Mensagens", "title": "Sem notícias", "description": "O JSON não contém notícias.", "_sort_key": None
+            }]
+            # atualiza texto do menu do lado (coach)
+            SB_MENU[1] = coach_name
+            print(f"[JSON] Atualizado ({reason}) | itens={len(news_all)}")
+        except Exception as e:
+            print("[JSON] Erro ao atualizar:", e)
+
+    def post_continue_webhook():
+        payload = {
+            "event": "continue_game",
+            "coach_name": coach_name,
+            "active_category": active_category,
+            "filter_text": filter_text,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+        try:
+            status, txt = http_post_json(WEBHOOK_URL, payload)
+            print(f"[WEBHOOK] POST status={status}")
+            if txt:
+                print("[WEBHOOK] response:", txt[:300])
+        except Exception as e:
+            print("[WEBHOOK] Falha POST:", e)
+
+    # -----------------------------
+    # UI helpers
+    # -----------------------------
     def current_view():
         return build_view(news_all, active_category, filter_text)
 
@@ -538,18 +647,6 @@ def run(json_path: str):
         selected_news = 0
         news_scroll = 0
         clamp_scroll(view)
-
-    def reload_json():
-        nonlocal coach_name, sidebar_date, news_all
-        try:
-            d = load_data(json_path)
-            coach_name = d["coach_name"]
-            sidebar_date = d["sidebar_date"]
-            news_all = d["news"] or [{
-                "date": "—", "category": "Mensagens", "title": "Sem notícias", "description": "O JSON não contém notícias.", "_sort_key": None
-            }]
-        except Exception as e:
-            print("Erro ao recarregar JSON:", e)
 
     def on_wheel(mouse_pos, y_delta):
         nonlocal news_scroll
@@ -605,6 +702,15 @@ def run(json_path: str):
     def click(mouse_pos):
         nonlocal active_category, selected_news, filter_active
 
+        # sidebar clicks
+        for i, r in enumerate(sb_btn_rects):
+            if in_rect(mouse_pos, r):
+                # "Continuar Jogo"
+                if i == 0:
+                    post_continue_webhook()
+                    refresh_json("continuar_jogo")
+                return
+
         # filtro ativa/desativa
         if in_rect(mouse_pos, filter_input_rect):
             filter_active = True
@@ -629,12 +735,21 @@ def run(json_path: str):
 
         # news rows
         if hover_news is not None:
-            selected_news = hover_news
-            ensure_selected_visible(current_view())
+            # (opcional) atualizar JSON ao clicar numa notícia
+            refresh_json("selecionar_noticia")
+            v = current_view()
+            if v:
+                selected_news = min(hover_news, len(v) - 1)
+                ensure_selected_visible(v)
+            else:
+                selected_news = 0
+                news_scroll = 0
             return
 
         # read next
         if in_rect(mouse_pos, read_next_rect):
+            # regra pedida: sempre que clicar no botão, atualizar JSON
+            refresh_json("ler_proxima")
             v = current_view()
             if not v:
                 return
@@ -658,8 +773,8 @@ def run(json_path: str):
 
         beveled_panel(screen, DATE_RECT, (12, 30, 130), C_YELLOW, C_BLACK, radius=max(2, Sx(4)))
 
-        # Date text (from JSON)
-        lines = sidebar_date.split("\n")
+        # Date text
+        lines = str(sidebar_date).split("\n")
         y = DATE_RECT.top + Sy(8)
         for ln in lines:
             img = FONT_14.render(ln, True, C_YELLOW)
@@ -696,6 +811,7 @@ def run(json_path: str):
             )
 
         # Filter (top-right)
+        # garante "Filtro :" legível
         draw_text(screen, "Filtro :", FONT_14, C_WHITE, filter_label_rect, align="center")
         pygame.draw.rect(screen, (40, 40, 40), filter_input_rect)
         pygame.draw.rect(screen, (180, 180, 180), filter_input_rect, max(1, Sx(1)))
@@ -703,7 +819,6 @@ def run(json_path: str):
         # texto do filtro + cursor
         ft = filter_text
         show = ft
-        # corta do começo se ficar muito grande
         max_px = filter_input_rect.width - Sx(14)
         fnt = FONT_14
         while fnt.size(show + "|")[0] > max_px and len(show) > 0:
@@ -720,30 +835,27 @@ def run(json_path: str):
                 "description": "Sem itens nesta categoria/filtro.", "_sort_key": None
             }]
 
-        # clamp selection
-        nonlocal_selected = False
-        nonlocal_scroll = False
-        # (em python, não podemos setar nonlocal aqui; então só garantimos com if)
-        # Ajuste simples:
-        # - se selected_news estourou, corrige
-        # - se scroll estourou, corrige
-        # (isso acontece quando filtro muda e lista fica menor)
-        nonlocal nonlocal_selected, nonlocal_scroll  # dummy to keep structure (no effect)
-
-        # safe selection/scroll
+        # safety selection/scroll
+        nonlocal_sel = False
         if selected_news >= len(view):
-            # volta pro topo
-            # (sem nonlocal; mas selected_news é do escopo do run, então isso funciona)
-            pass
+            selected_news_local = 0
+        else:
+            selected_news_local = selected_news
 
-        # List header = selected title (do view)
-        sel_idx = min(selected_news, len(view) - 1)
+        max_scroll = max(0, len(view) - visible_rows)
+        if news_scroll > max_scroll:
+            news_scroll_local = max_scroll
+        else:
+            news_scroll_local = news_scroll
+
+        # List header
+        sel_idx = min(selected_news_local, len(view) - 1)
         sel_title = view[sel_idx]["title"]
 
         beveled_panel(screen, list_header, C_RED_DARK, (255, 80, 80), C_BLACK, radius=max(2, Sx(2)))
         draw_text(screen, sel_title, FONT_14, C_WHITE, list_header, align="midleft")
 
-        # List panel (alpha)
+        # List panel
         panel_surf = pygame.Surface((list_panel.width, list_panel.height), pygame.SRCALPHA)
         panel_surf.fill(C_PANEL)
         screen.blit(panel_surf, list_panel.topleft)
@@ -755,7 +867,7 @@ def run(json_path: str):
         chip_w = Sx(130)
 
         for i in range(visible_rows):
-            idx = news_scroll + i
+            idx = news_scroll_local + i
             if idx >= len(view):
                 break
             item = view[idx]
@@ -792,19 +904,19 @@ def run(json_path: str):
         pygame.draw.rect(screen, (120, 120, 120), scrollbar_rect, max(1, Sx(1)))
 
         thumb_h = max(Sy(24), int(scrollbar_rect.height * (visible_rows / max(visible_rows, len(view)))))
-        max_scroll = max(0, len(view) - visible_rows)
-        t = 0 if max_scroll == 0 else news_scroll / max_scroll
+        max_scroll2 = max(0, len(view) - visible_rows)
+        t = 0 if max_scroll2 == 0 else news_scroll_local / max_scroll2
         thumb_y = scrollbar_rect.top + int((scrollbar_rect.height - thumb_h) * t)
         thumb = pygame.Rect(scrollbar_rect.left + Sx(2), thumb_y, scrollbar_rect.width - Sx(4), thumb_h)
         pygame.draw.rect(screen, (180, 180, 180), thumb)
         pygame.draw.rect(screen, C_BLACK, thumb, max(1, Sx(1)))
 
-        # Read next button (under filter, right side)
+        # Read next button
         pygame.draw.rect(screen, (200, 200, 200) if hover_read_next else (180, 180, 180), read_next_rect)
         pygame.draw.rect(screen, C_BLACK, read_next_rect, max(1, Sx(2)))
         draw_text(screen, "Ler Próxima", FONT_14, (20, 20, 20), read_next_rect, align="center")
 
-        # Content area overlay
+        # Content area
         content_surf = pygame.Surface((content_rect.width, content_rect.height), pygame.SRCALPHA)
         content_surf.fill(C_PANEL_2)
         screen.blit(content_surf, content_rect.topleft)
@@ -814,16 +926,14 @@ def run(json_path: str):
         title_img = FONT_22.render(sel_title, True, C_YELLOW)
         screen.blit(title_img, (content_rect.left + Sx(16), content_rect.top + Sy(18)))
 
-        # Description text (wrapped) - com margem inferior p/ não encostar nos botões
+        # Description wrapped
         desc = view[sel_idx]["description"]
         body_x = content_rect.left + Sx(16)
         body_y = content_rect.top + Sy(72)
         body_w = content_rect.width - Sx(32)
-
-        # margem inferior grande pra não “encostar” nos tabs
         clip_bottom = content_rect.bottom - Sy(20)
 
-        paragraphs = [p.strip() for p in desc.split("\n\n") if p.strip()]
+        paragraphs = [p.strip() for p in str(desc).split("\n\n") if p.strip()]
         text_font = get_font(Sf(22), bold=True)
         line_h = Sy(28)
         for p in paragraphs:
@@ -851,7 +961,8 @@ def run(json_path: str):
         pygame.draw.rect(screen, C_BLACK, btn_next_rect, max(1, Sx(2)))
         draw_text(screen, "Seguinte", FONT_22, (240, 240, 240), btn_next_rect, align="center")
 
-    # ------------- Loop -------------
+    # initial refresh (already done by fetch_data_remote_or_cache)
+    # main loop
     running = True
     while running:
         clock.tick(FPS)
@@ -864,14 +975,12 @@ def run(json_path: str):
                 if event.key == pygame.K_ESCAPE:
                     running = False
                 elif event.key == pygame.K_r:
-                    reload_json()
-                    # ao recarregar, reseta seleção p/ evitar index inválido
+                    refresh_json("tecla_r")
                     selected_news = 0
                     news_scroll = 0
                 elif event.key == pygame.K_F5:
                     BG = load_bg()
                 else:
-                    # digitação do filtro
                     if filter_active:
                         if event.key == pygame.K_BACKSPACE:
                             filter_text = filter_text[:-1]
@@ -900,7 +1009,7 @@ def run(json_path: str):
             elif event.type == pygame.MOUSEWHEEL:
                 on_wheel(pygame.mouse.get_pos(), event.y)
 
-        # segurança: ajusta selection/scroll baseado no view atual
+        # safety: ajusta selection/scroll ao vivo
         v = build_view(news_all, active_category, filter_text)
         if not v:
             v = [{
@@ -923,7 +1032,4 @@ def run(json_path: str):
 
 # ---------- Entry ----------
 if __name__ == "__main__":
-    path = DEFAULT_JSON_PATH
-    if len(sys.argv) >= 2:
-        path = sys.argv[1]
-    run(path)
+    run()
