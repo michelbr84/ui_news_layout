@@ -1,7 +1,7 @@
 {
   "coach_name": "Michel Duek",
   "team_name": "MichelFC",
-  "sidebar_date": "Sexta-Feira\n2.1.26 TAR",
+  "sidebar_date": "Sábado\n3.1.26 TAR",
   "news": [
     {
       "date": "Qua 31 Dez TAR",
@@ -36,6 +36,18 @@
         2026,
         1,
         1,
+        1
+      ]
+    },
+    {
+      "date": "Sexta 2.1.26 TAR",
+      "title": "Campeonato começa em breve",
+      "description": "O campeonato começará em 2026-03-29 e terminará em 2026-12-07. Você jogará sua primeira partida contra o time TBD.",
+      "category": "Competições",
+      "_sort_key": [
+        2026,
+        1,
+        2,
         1
       ]
     }
