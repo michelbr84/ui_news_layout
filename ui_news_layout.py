@@ -229,7 +229,7 @@ def normalize_data(data: dict) -> dict:
     for item in news:
         if not isinstance(item, dict):
             continue
-        date = str(item.get = item.get("date", "")).strip() if "date" in item else str(item.get("date", "")).strip()
+        date = str(item.get("date", "")).strip() or "—" if "date" in item else str(item.get("date", "")).strip()
         date = str(item.get("date", "")).strip() or "—"
         title = str(item.get("title", "")).strip()
         desc = str(item.get("description", "")).strip() or "—"

@@ -1,0 +1,43 @@
+{
+  "coach_name": "Michel Duek",
+  "team_name": "MichelFC",
+  "sidebar_date": "Quinta-Feira\n1.1.26 TAR",
+  "news": [
+    {
+      "date": "Qua 31 Dez TAR",
+      "title": "Comece o ano novo com o pé direito!",
+      "description": "Logo mais é virada de ano e você ainda não tem um time!",
+      "category": "Mensagens",
+      "_sort_key": [
+        2026,
+        12,
+        31,
+        1
+      ]
+    },
+    {
+      "date": "Qua 31 Dez NTE",
+      "title": "Feliz Ano Novo",
+      "description": "A equipe do jogo PyManager te deseja um exelente ano novo, que você tenha muitas vitórias.",
+      "category": "Mensagens",
+      "_sort_key": [
+        2026,
+        12,
+        31,
+        2
+      ]
+    },
+    {
+      "date": "Qui 1 Jan TAR",
+      "title": "Times buscam novos treinadores",
+      "description": "Vários times de futebol estão procurando novos treinadores para começar o ano.",
+      "category": "Empregos",
+      "_sort_key": [
+        2026,
+        1,
+        1,
+        1
+      ]
+    }
+  ]
+}
