@@ -6,6 +6,7 @@ import re
 import urllib.request
 import urllib.error
 from datetime import datetime
+from competitions_view import CompetitionsView
 
 pygame.init()
 pygame.display.set_caption("Noticias (Pygame Mock)")
@@ -458,6 +459,10 @@ def run():
     }]
 
     # UI State
+    # UI State
+    current_mode = "NEWS"  # "NEWS" | "COMPETITIONS"
+    comp_view = CompetitionsView("campeonato.json", Sx, Sy, Sf, get_font)
+
     active_category = "Todas"
     filter_text = ""
     filter_active = False
@@ -700,7 +705,7 @@ def run():
                     break
 
     def click(mouse_pos):
-        nonlocal active_category, selected_news, filter_active
+        nonlocal active_category, selected_news, filter_active, current_mode
 
         # sidebar clicks
         for i, r in enumerate(sb_btn_rects):
@@ -709,53 +714,64 @@ def run():
                 if i == 0:
                     post_continue_webhook()
                     refresh_json("continuar_jogo")
+                elif i == 1:
+                    current_mode = "NEWS"
+                elif i == 2:
+                    current_mode = "COMPETITIONS"
+                    # Opcional: recarregar dados se precisar
+                    # comp_view.reload() 
                 return
 
-        # filtro ativa/desativa
-        if in_rect(mouse_pos, filter_input_rect):
-            filter_active = True
-        else:
-            filter_active = False
-
-        # top tabs -> category
-        for i, r in enumerate(top_tab_rects):
-            if in_rect(mouse_pos, r):
-                active_category = TOP_TABS[i]
-                v = current_view()
-                reset_selection(v)
-                return
-
-        # bottom tabs -> category
-        for i, r in enumerate(bottom_tab_rects):
-            if in_rect(mouse_pos, r):
-                active_category = BOTTOM_TABS[i]
-                v = current_view()
-                reset_selection(v)
-                return
-
-        # news rows
-        if hover_news is not None:
-            # (opcional) atualizar JSON ao clicar numa notícia
-            refresh_json("selecionar_noticia")
-            v = current_view()
-            if v:
-                selected_news = min(hover_news, len(v) - 1)
-                ensure_selected_visible(v)
+        # Apenas processa cliques da View de notícias se estiver no modo NEWS
+        if current_mode == "NEWS":
+            # filtro ativa/desativa
+            if in_rect(mouse_pos, filter_input_rect):
+                filter_active = True
             else:
-                selected_news = 0
-                news_scroll = 0
-            return
+                filter_active = False
 
-        # read next
-        if in_rect(mouse_pos, read_next_rect):
-            # regra pedida: sempre que clicar no botão, atualizar JSON
-            refresh_json("ler_proxima")
-            v = current_view()
-            if not v:
+            # top tabs -> category
+            for i, r in enumerate(top_tab_rects):
+                if in_rect(mouse_pos, r):
+                    active_category = TOP_TABS[i]
+                    v = current_view()
+                    reset_selection(v)
+                    return
+
+            # bottom tabs -> category
+            for i, r in enumerate(bottom_tab_rects):
+                if in_rect(mouse_pos, r):
+                    active_category = BOTTOM_TABS[i]
+                    v = current_view()
+                    reset_selection(v)
+                    return
+
+            # news rows
+            if hover_news is not None:
+                # (opcional) atualizar JSON ao clicar numa notícia
+                refresh_json("selecionar_noticia")
+                v = current_view()
+                if v:
+                    selected_news = min(hover_news, len(v) - 1)
+                    ensure_selected_visible(v)
+                else:
+                    selected_news = 0
+                    news_scroll = 0
                 return
-            selected_news = (selected_news + 1) % len(v)
-            ensure_selected_visible(v)
-            return
+
+            # read next
+            if in_rect(mouse_pos, read_next_rect):
+                # regra pedida: sempre que clicar no botão, atualizar JSON
+                refresh_json("ler_proxima")
+                v = current_view()
+                if not v:
+                    return
+                selected_news = (selected_news + 1) % len(v)
+                ensure_selected_visible(v)
+                return
+        
+        elif current_mode == "COMPETITIONS":
+            comp_view.handle_input(pygame.event.Event(pygame.MOUSEBUTTONDOWN, {"pos": mouse_pos, "button": 1}))
 
     def render():
         # Background
@@ -796,6 +812,10 @@ def run():
         # Main frame
         pygame.draw.rect(screen, C_BLACK, main_frame)
         pygame.draw.rect(screen, (255, 0, 0), main_frame, max(1, Sx(2)))
+
+        if current_mode == "COMPETITIONS":
+            comp_view.render(screen, main_frame)
+            return
 
         # Title
         beveled_panel(screen, title_rect, C_RED, (255, 80, 80), C_BLACK, radius=max(2, Sx(3)))
@@ -996,7 +1016,10 @@ def run():
                                 news_scroll = 0
 
             elif event.type == pygame.MOUSEMOTION:
-                update_hover(event.pos)
+                if current_mode == "COMPETITIONS":
+                    comp_view.handle_input(event)
+                else:
+                    update_hover(event.pos)
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
